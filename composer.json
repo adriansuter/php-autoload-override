@@ -1,0 +1,28 @@
+{
+  "name": "adriansuter/php-rnfc-override",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Adrian Suter",
+      "email": "adrian@suter-wirz.ch"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "AdrianSuter\\RNFCOverride\\": "src"
+    }
+  },
+  "require": {
+    "php": "^7.1",
+    "nikic/php-parser": "^4.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.0"
+  },
+  "scripts": {
+    "test": [
+      "@phpunit"
+    ],
+    "phpunit": "phpunit"
+  }
+}

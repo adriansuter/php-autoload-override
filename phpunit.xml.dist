@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/7.1/phpunit.xsd"
+         backupGlobals="true"
+         beStrictAboutOutputDuringTests="true"
+         colors="true"
+         bootstrap="tests/bootstrap.php">
+
+    <testsuites>
+        <testsuite name="FQFC-Override Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src/</directory>
+        </whitelist>
+    </filter>
+
+    <logging>
+        <log
+                type="coverage-html"
+                target="./coverage"
+                lowUpperBound="20"
+                highLowerBound="50"/>
+    </logging>
+
+</phpunit>
