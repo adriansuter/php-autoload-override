@@ -21,7 +21,7 @@ use PhpParser\Parser;
 use PhpParser\Parser\Php7;
 use PhpParser\PrettyPrinter\Standard;
 
-final class CodeConverter
+class CodeConverter
 {
     /**
      * @var Parser
@@ -51,7 +51,8 @@ final class CodeConverter
     /**
      * @param Lexer|null         $lexer      The lexer.
      * @param Parser|null        $parser     The parser.
-     * @param NodeTraverser|null $traverser  The traverser - make sure that the traverser has a CloningVisitor and a NameResolver visitor.
+     * @param NodeTraverser|null $traverser  The traverser - make sure that the traverser has a CloningVisitor and a
+     *                                       NameResolver visitor.
      * @param Standard|null      $printer    The printer.
      * @param NodeFinder|null    $nodeFinder The node finder.
      */
@@ -85,6 +86,7 @@ final class CodeConverter
      *
      * @param string $code
      * @param array  $functionCallMappings
+     *
      * @return string
      */
     public function convert(string $code, array $functionCallMappings): string

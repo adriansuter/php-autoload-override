@@ -12,7 +12,7 @@ namespace AdrianSuter\Autoload\Override;
 use Closure;
 use RuntimeException;
 
-final class ClosureHandler
+class ClosureHandler
 {
     /**
      * @var self
@@ -32,6 +32,7 @@ final class ClosureHandler
         if (self::$instance === null) {
             self::$instance = new ClosureHandler();
         }
+
         return self::$instance;
     }
 
