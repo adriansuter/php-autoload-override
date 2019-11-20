@@ -1,15 +1,15 @@
 <?php
 /**
- * Root Namespaced Function Call Override (https://github.com/adriansuter/php-rnfc-override)
+ * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
- * @license https://github.com/adriansuter/php-rnfc-override/blob/master/LICENSE.md (MIT License)
+ * @license https://github.com/adriansuter/php-autoload-override/blob/master/LICENSE.md (MIT License)
  */
 
 declare(strict_types=1);
 
-namespace AdrianSuter\RNFCOverride;
+namespace AdrianSuter\Autoload\Override;
 
-class RNFCFileStreamWrapper
+class FileStreamWrapper
 {
     /**
      * @var resource
@@ -309,7 +309,7 @@ class RNFCFileStreamWrapper
 
         // TODO Implement error reporting as well as opened_path.
 
-        $functionCallMappings = RNFCOverride::getFunctionMappings($path);
+        $functionCallMappings = Override::getFunctionMappings($path);
 
         // Replace the global function calls into local function calls.
         if (!empty($functionCallMappings)) {
@@ -319,7 +319,7 @@ class RNFCFileStreamWrapper
                 $source = file_get_contents($path, $usePath);
             }
 
-            $source = RNFCOverride::getFQFCConverter()->convert($source, $functionCallMappings);
+            $source = Override::getFQFCConverter()->convert($source, $functionCallMappings);
 
             $this->resource = tmpfile();
             fwrite($this->resource, $source);

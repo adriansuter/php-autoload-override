@@ -1,17 +1,17 @@
 <?php
 /**
- * Root Namespaced Function Call Override (https://github.com/adriansuter/php-rnfc-override)
+ * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
- * @license https://github.com/adriansuter/php-rnfc-override/blob/master/LICENSE.md (MIT License)
+ * @license https://github.com/adriansuter/php-autoload-override/blob/master/LICENSE.md (MIT License)
  */
 
 declare(strict_types=1);
 
-namespace AdrianSuter\RNFCOverride;
+namespace AdrianSuter\Autoload\Override;
 
 use Composer\Autoload\ClassLoader;
 
-class RNFCOverride
+class Override
 {
     /**
      * @var array
@@ -24,26 +24,26 @@ class RNFCOverride
     private static $dirFunctionMappings;
 
     /**
-     * @var RNFCConverter|null
+     * @var CodeConverter|null
      */
     private static $converter;
 
 
     /**
-     * @param RNFCConverter $converter
+     * @param CodeConverter $converter
      */
-    public static function setFQFCConverter(RNFCConverter $converter): void
+    public static function setFQFCConverter(CodeConverter $converter): void
     {
         self::$converter = $converter;
     }
 
     /**
-     * @return RNFCConverter
+     * @return CodeConverter
      */
-    public static function getFQFCConverter(): RNFCConverter
+    public static function getFQFCConverter(): CodeConverter
     {
         if (self::$converter === null) {
-            self::setFQFCConverter(new RNFCConverter());
+            self::setFQFCConverter(new CodeConverter());
         }
 
         return self::$converter;
@@ -57,14 +57,14 @@ class RNFCOverride
     public static function run(ClassLoader $classLoader, array $functionMappings, string $namespace = 'PHPOverride')
     {
         // Make sure that the stream wrapper class is loaded.
-        $classLoader->loadClass(RNFCFileStreamWrapper::class);
+        $classLoader->loadClass(FileStreamWrapper::class);
 
         // Reset the function mappings.
         self::$fileFunctionMappings = [];
         self::$dirFunctionMappings = [];
 
         // Initialize the collection of includes (load and convert).
-        $includeCollection = new RNFCIncludeCollection();
+        $includeCollection = new IncludeCollection();
 
         foreach ($functionMappings as $fqn => $mappings) {
             $funcMappings = self::buildMappings($mappings, $namespace);
@@ -104,7 +104,7 @@ class RNFCOverride
 
         // Load the classes that are affected by the fqfc-override converter.
         \stream_wrapper_unregister('file');
-        \stream_wrapper_register('file', RNFCFileStreamWrapper::class);
+        \stream_wrapper_register('file', FileStreamWrapper::class);
         foreach ($includeCollection->getFilePaths() as $file) {
             /** @noinspection PhpIncludeInspection */
             include_once $file;
@@ -121,7 +121,14 @@ class RNFCOverride
             if (\is_numeric($key)) {
                 $fcMappings['\\' . $val] = $namespace . '\\' . $val;
             } else {
-                $fcMappings['\\' . $key] = $val . '\\' . $key;
+                if (is_string($val)) {
+                    $fcMappings['\\' . $key] = $val . '\\' . $key;
+                } elseif ($val instanceof \Closure) {
+                    $name = $key . '_' . uniqid();
+                    ClosureHandler::getInstance()->addMethod($name, $val);
+
+                    $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
+                }
             }
         }
 

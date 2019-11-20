@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-use AdrianSuter\RNFCOverride\RNFCConverter;
+use AdrianSuter\AutoloadOverride\RNFCConverter;
 use PHPUnit\Framework\TestCase;
 
 class RNFCConverterTest extends TestCase

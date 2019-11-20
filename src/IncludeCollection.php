@@ -1,20 +1,20 @@
 <?php
 /**
- * Root Namespaced Function Call Override (https://github.com/adriansuter/php-rnfc-override)
+ * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
- * @license https://github.com/adriansuter/php-rnfc-override/blob/master/LICENSE.md (MIT License)
+ * @license https://github.com/adriansuter/php-autoload-override/blob/master/LICENSE.md (MIT License)
  */
 
 declare(strict_types=1);
 
-namespace AdrianSuter\RNFCOverride;
+namespace AdrianSuter\Autoload\Override;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
 
-class RNFCIncludeCollection
+class IncludeCollection
 {
     /**
      * @var bool[]

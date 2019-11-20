@@ -7,8 +7,8 @@
 
 declare(strict_types=1);
 
-use AdrianSuter\RNFCOverride\RNFCConverter;
-use AdrianSuter\RNFCOverride\RNFCOverride;
+use AdrianSuter\AutoloadOverride\RNFCConverter;
+use AdrianSuter\AutoloadOverride\RNFCOverride;
 use PHPUnit\Framework\TestCase;
 
 /**

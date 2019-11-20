@@ -7,7 +7,7 @@ Let us write the `tests/bootstrap.php` file as follows:
 ```php
 <?php declare(strict_types=1);
 
-use AdrianSuter\RNFCOverride\RNFCOverride;
+use AdrianSuter\AutoloadOverride\RNFCOverride;
 use Composer\Autoload\ClassLoader;
 
 /** @var ClassLoader $classLoader */

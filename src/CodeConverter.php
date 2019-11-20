@@ -1,13 +1,13 @@
 <?php
 /**
- * Root Namespaced Function Call Override (https://github.com/adriansuter/php-rnfc-override)
+ * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
- * @license https://github.com/adriansuter/php-rnfc-override/blob/master/LICENSE.md (MIT License)
+ * @license https://github.com/adriansuter/php-autoload-override/blob/master/LICENSE.md (MIT License)
  */
 
 declare(strict_types=1);
 
-namespace AdrianSuter\RNFCOverride;
+namespace AdrianSuter\Autoload\Override;
 
 use PhpParser\Lexer;
 use PhpParser\Lexer\Emulative;
@@ -21,7 +21,7 @@ use PhpParser\Parser;
 use PhpParser\Parser\Php7;
 use PhpParser\PrettyPrinter\Standard;
 
-class RNFCConverter
+final class CodeConverter
 {
     /**
      * @var Parser
@@ -49,11 +49,11 @@ class RNFCConverter
     protected $nodeFinder;
 
     /**
-     * @param Lexer|null         $lexer
-     * @param Parser|null        $parser
-     * @param NodeTraverser|null $traverser
-     * @param Standard|null      $printer
-     * @param NodeFinder|null    $nodeFinder
+     * @param Lexer|null         $lexer      The lexer.
+     * @param Parser|null        $parser     The parser.
+     * @param NodeTraverser|null $traverser  The traverser - make sure that the traverser has a CloningVisitor and a NameResolver visitor.
+     * @param Standard|null      $printer    The printer.
+     * @param NodeFinder|null    $nodeFinder The node finder.
      */
     public function __construct(
         ?Lexer $lexer = null,
