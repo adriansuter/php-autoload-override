@@ -1,3 +1,7 @@
+---
+title: PHP Autoload Override
+author: "Adrian Suter"
+---
 
 
 
