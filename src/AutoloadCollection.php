@@ -14,7 +14,7 @@ use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
 
-class IncludeCollection
+class AutoloadCollection
 {
     /**
      * @var bool[]
