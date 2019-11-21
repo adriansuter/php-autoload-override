@@ -2,48 +2,85 @@
 title: PHP Autoload Override
 author: "Adrian Suter"
 ---
-You need to override native php functions but your code uses fully qualified function calls?
+This library allows to override fully qualified function calls inside your class methods in order to
+be able to mock them during testing.
 
-Then this library might be something for you. But beware, **you should use this library in 
-development only, most probably for unit testing.**
+**NOTE: The library can be used for other scenarios as well. But we recommend to use it for testing purposes
+only.**
 
 
-## Usage
+# Prerequisites
 
-Say you have the following class:
+- PHP 7.1 or later
+- Composer
+
+
+# Installation
+
+```bash
+$ composer require adriansuter/php-autoload-override
+```
+
+
+# Simple Example
+
+Say you have the following class `Clock` which contains one method `now()`. That method returns
+the result of the php-function `time()` from the global scope (fully qualified function call).
 ```php
 namespace My\App;
 
-class Person
+class Clock
 {
-    public function whisper(string $text): string
+    public function now(): int
     {
-        return \strtolower($text); // <- Fully qualified function call
+        return \time(); // <- Fully qualified function call
     }
 }
 ```
 
-Now you can simply write
+Furthermore say you have a very simple script that consumes that class in the following form
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+
+$clock = new \My\App\Clock();
+echo $clock->now();
+```
+
+Whenever you run this script, the output would be the current unix timestamp. Now if you want to 
+override the `\time()` function, for example to make sure that the output is always `1574333284`,
+you can use the PHP-Autoload-Override library and simply modify your script
+
 ```php
 /** @var \Composer\Autoload\ClassLoader $classLoader */
 $classLoader = require __DIR__ . '/vendor/autoload.php';
 
 \AdrianSuter\Autoload\Override\Override::run($classLoader, [
-    \My\App\Person::class => [
-        'strtolower' => function (string $str): string {
-            return \strtoupper($str);
+    \My\App\Clock::class => [
+        'time' => function () {
+            return 1574333284;
         }
     ]
 ]);
 
-$stringConverter = new \My\App\Person();
-echo $stringConverter->whisper('Person');
+$clock = new \My\App\Clock();
+echo $clock->now();
 ```
 
-The output would be
-```bash
-PERSON
-```
+The output would be `1574333284` no matter when you run this script.
+
+
+# How does it work?
+
+First the PHP-Autoload-Override library collects all classes that would be affected by an override.
+Then the library registers a stream wrapper such that it can handle file loading.
+Using the standard autoload class loader from composer, the library then loads these affected classes.
+The class loader would then load the classes as well as their dependencies. The PHP-Autoload-Override
+intercepts the file loading and if it detects an affected class, it loads the source code and modifies the
+fully qualified function calls. Of course at the end, the modified source code would be loaded into
+the php runtime.
+
+
+## Usage
 
 
 ### Use in phpunit
