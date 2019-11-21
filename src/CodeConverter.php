@@ -94,6 +94,8 @@ class CodeConverter
         $oldStmts = $this->parser->parse($code);
         $oldTokens = $this->lexer->getTokens();
 
+        $overridePlaceholders = [];
+
         $newStmts = $this->traverser->traverse($oldStmts);
         $funcCalls = $this->nodeFinder->findInstanceOf($newStmts, FuncCall::class);
         foreach ($funcCalls as $funcCall) {
@@ -101,15 +103,19 @@ class CodeConverter
             if ($funcCall->name->hasAttribute('resolvedName')) {
                 /** @var FullyQualified $resolvedName */
                 $resolvedName = $funcCall->name->getAttribute('resolvedName');
+                $resolvedNameCode = $resolvedName->toCodeString();
 
-                if (isset($functionCallMappings[$resolvedName->toCodeString()])) {
-                    $funcCall->name = new FullyQualified(
-                        $functionCallMappings[$resolvedName->toCodeString()]
-                    );
+                if (isset($functionCallMappings[$resolvedNameCode])) {
+                    $k = uniqid(md5($resolvedNameCode), true);
+                    $overridePlaceholders[$k] = $functionCallMappings[$resolvedNameCode];
+
+                    $funcCall->name = new FullyQualified($k);
                 }
             }
         }
 
-        return $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
+        $code = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
+
+        return str_replace(array_keys($overridePlaceholders), array_values($overridePlaceholders), $code);
     }
 }
