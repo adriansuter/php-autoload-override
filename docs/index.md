@@ -54,7 +54,7 @@ you can use the PHP-Autoload-Override library and simply modify your script
 /** @var \Composer\Autoload\ClassLoader $classLoader */
 $classLoader = require __DIR__ . '/vendor/autoload.php';
 
-\AdrianSuter\Autoload\Override\Override::run($classLoader, [
+\AdrianSuter\Autoload\Override\Override::apply($classLoader, [
     \My\App\Clock::class => [
         'time' => function () {
             return 1574333284;
@@ -95,7 +95,7 @@ use Composer\Autoload\ClassLoader;
 /** @var ClassLoader $classLoader */
 $classLoader = require __DIR__ . '/../vendor/autoload.php';
 
-Override::run($classLoader, [
+Override::apply($classLoader, [
     \My\App\Person::class => ['copy'],
 ]);
 
@@ -126,11 +126,11 @@ function copy(string $source, string $destination, $context = null): bool
 ### Custom namespace for the override functions
 
 If the defined functions would all be live in another namespace, then simply add
-that namespace to the `run()`-method.
+that namespace to the `apply()`-method.
 
 For example
 ```php
-Override::run($classLoader, $overrides, 'My\\Library\\Override');
+Override::apply($classLoader, $overrides, 'My\\Library\\Override');
 ```
 
 

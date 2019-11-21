@@ -32,7 +32,7 @@ class Override
     /**
      * @param CodeConverter $converter
      */
-    public static function setFQFCConverter(CodeConverter $converter): void
+    public static function setCodeConverter(CodeConverter $converter): void
     {
         self::$converter = $converter;
     }
@@ -40,10 +40,10 @@ class Override
     /**
      * @return CodeConverter
      */
-    public static function getFQFCConverter(): CodeConverter
+    public static function getCodeConverter(): CodeConverter
     {
         if (self::$converter === null) {
-            self::setFQFCConverter(new CodeConverter());
+            self::setCodeConverter(new CodeConverter());
         }
 
         return self::$converter;
@@ -54,8 +54,11 @@ class Override
      * @param array       $functionMappings
      * @param string      $namespace
      */
-    public static function run(ClassLoader $classLoader, array $functionMappings, string $namespace = 'PHPOverride')
-    {
+    public static function apply(
+        ClassLoader $classLoader,
+        array $functionMappings,
+        string $namespace = 'PHPAutoloadOverride'
+    ) {
         // Make sure that the stream wrapper class is loaded.
         $classLoader->loadClass(FileStreamWrapper::class);
 
@@ -124,7 +127,7 @@ class Override
                 if (is_string($val)) {
                     $fcMappings['\\' . $key] = $val . '\\' . $key;
                 } elseif ($val instanceof \Closure) {
-                    $name = $key . '_' . uniqid();
+                    $name = $key . '_' . spl_object_hash($val);
                     ClosureHandler::getInstance()->addMethod($name, $val);
 
                     $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;

@@ -20,14 +20,14 @@ class OverrideTest extends TestCase
     {
         $converter = $this->createMock(CodeConverter::class);
 
-        Override::setFQFCConverter($converter);
-        $this->assertEquals($converter, Override::getFQFCConverter());
+        Override::setCodeConverter($converter);
+        $this->assertEquals($converter, Override::getCodeConverter());
     }
 
     public function testGetFQFCConverter()
     {
         $this->assertInstanceOf(
-            CodeConverter::class, Override::getFQFCConverter()
+            CodeConverter::class, Override::getCodeConverter()
         );
     }
 }

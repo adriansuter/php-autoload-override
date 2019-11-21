@@ -319,7 +319,7 @@ class FileStreamWrapper
                 $source = file_get_contents($path, $usePath);
             }
 
-            $source = Override::getFQFCConverter()->convert($source, $functionCallMappings);
+            $source = Override::getCodeConverter()->convert($source, $functionCallMappings);
 
             $this->resource = tmpfile();
             fwrite($this->resource, $source);
