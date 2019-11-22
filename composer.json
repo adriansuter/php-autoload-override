@@ -12,6 +12,12 @@
       "AdrianSuter\\Autoload\\Override\\": "src"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "My\\Integration\\": "tests/integration/src",
+      "AdrianSuter\\Autoload\\Override\\": "tests/integration/src-override"
+    }
+  },
   "require": {
     "php": "^7.1",
     "nikic/php-parser": "^4.3"

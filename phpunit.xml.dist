@@ -7,7 +7,7 @@
          bootstrap="tests/bootstrap.php">
 
     <testsuites>
-        <testsuite name="FQFC-Override Test Suite">
+        <testsuite name="PHP Autoload Override Test Suite">
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>

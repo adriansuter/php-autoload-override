@@ -60,14 +60,16 @@ class Override
         string $namespace = 'PHPAutoloadOverride'
     ) {
         // Make sure that the stream wrapper class is loaded.
-        $classLoader->loadClass(FileStreamWrapper::class);
+        if (!class_exists(FileStreamWrapper::class)) {
+            $classLoader->loadClass(FileStreamWrapper::class);
+        }
 
         // Reset the function mappings.
         self::$fileFunctionMappings = [];
         self::$dirFunctionMappings = [];
 
-        // Initialize the collection of includes (load and convert).
-        $includeCollection = new IncludeCollection();
+        // Initialize the collection of files we would need to load.
+        $autoloadCollection = new AutoloadCollection();
 
         foreach ($functionMappings as $fqn => $mappings) {
             $funcMappings = self::buildMappings($mappings, $namespace);
@@ -75,16 +77,32 @@ class Override
             if (\substr($fqn, -1, 1) === '\\') {
                 // The given fqn is a namespace.
                 $prefixesPsr4 = $classLoader->getPrefixesPsr4();
-                $parts = \explode('\\', $fqn);
+
+                $handled = [];
+                $popped = [];
+                $parts = \explode('\\', trim($fqn, '\\'));
                 while (!empty($parts)) {
                     $glued = \implode('\\', $parts) . '\\';
 
                     if (isset($prefixesPsr4[$glued])) {
-                        self::addNamespaceData($prefixesPsr4[$glued], $funcMappings);
-                        $includeCollection->addDirectories($prefixesPsr4[$glued]);
+                        $subDir = implode('/', $popped);
+
+                        foreach ($prefixesPsr4[$glued] as $directory) {
+                            $dir = realpath($directory . '/' . $subDir);
+                            if ($dir === false) {
+                                continue;
+                            }
+
+                            if (is_dir($dir) && !isset($handled[$dir])) {
+                                $handled[$dir] = true;
+                                //echo $dir . PHP_EOL;
+                                self::addNamespaceData([$dir], $funcMappings);
+                                $autoloadCollection->addDirectories([$dir]);
+                            }
+                        }
                     }
 
-                    \array_pop($parts);
+                    \array_unshift($popped, \array_pop($parts));
                 }
                 continue;
             }
@@ -102,13 +120,13 @@ class Override
             }
 
             self::$fileFunctionMappings[$path] = $funcMappings;
-            $includeCollection->addFile($path);
+            $autoloadCollection->addFile($path);
         }
 
         // Load the classes that are affected by the fqfc-override converter.
         \stream_wrapper_unregister('file');
         \stream_wrapper_register('file', FileStreamWrapper::class);
-        foreach ($includeCollection->getFilePaths() as $file) {
+        foreach ($autoloadCollection->getFilePaths() as $file) {
             /** @noinspection PhpIncludeInspection */
             include_once $file;
         }
