@@ -119,8 +119,10 @@ class Override
                         }
 
                         if (isset(self::$fileFunctionCallMappings[$p])) {
-                            self::$fileFunctionCallMappings[$p] = array_merge($fqnFunctionCallMappings,
-                                self::$fileFunctionCallMappings[$p]);
+                            self::$fileFunctionCallMappings[$p] = array_merge(
+                                $fqnFunctionCallMappings,
+                                self::$fileFunctionCallMappings[$p]
+                            );
                         } else {
                             self::$fileFunctionCallMappings[$p] = $fqnFunctionCallMappings;
                         }
