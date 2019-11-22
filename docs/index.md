@@ -12,7 +12,7 @@ only.**
 # Prerequisites
 
 - PHP 7.1 or later
-- Composer
+- Composer with PSR-4 (PSR-0 is not supported)
 
 
 # Installation
@@ -145,3 +145,8 @@ $overrides = [
 
 The converter would automatically convert any calls to `\copy()` inside the class
 `\My\App\Person` to `\My\Tests\SpecialOverride\copy()`.
+
+
+# APC User Cache
+
+APC User Cache is not supported.

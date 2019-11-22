@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace AdrianSuter\Autoload\Override;
 
 use Composer\Autoload\ClassLoader;
+use RuntimeException;
 
 class Override
 {
@@ -59,8 +60,12 @@ class Override
         array $functionMappings,
         string $namespace = 'PHPAutoloadOverride'
     ) {
+        if ($classLoader->getApcuPrefix() !== null) {
+            throw new RuntimeException('APC User Cache is not supported.');
+        }
+
         // Make sure that the stream wrapper class is loaded.
-        if (!class_exists(FileStreamWrapper::class)) {
+        if (!\class_exists(FileStreamWrapper::class)) {
             $classLoader->loadClass(FileStreamWrapper::class);
         }
 
