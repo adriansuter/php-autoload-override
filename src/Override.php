@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
+use Closure;
 use Composer\Autoload\ClassLoader;
 use RuntimeException;
 
@@ -17,12 +18,12 @@ class Override
     /**
      * @var array
      */
-    private static $fileFunctionMappings;
+    private static $fileFunctionCallMappings;
 
     /**
      * @var array
      */
-    private static $dirFunctionMappings;
+    private static $dirFunctionCallMappings;
 
     /**
      * @var CodeConverter|null
@@ -51,13 +52,13 @@ class Override
     }
 
     /**
-     * @param ClassLoader $classLoader
-     * @param array       $functionMappings
-     * @param string      $namespace
+     * @param ClassLoader        $classLoader
+     * @param string[]|Closure[] $functionCallMappings
+     * @param string             $namespace
      */
     public static function apply(
         ClassLoader $classLoader,
-        array $functionMappings,
+        array $functionCallMappings,
         string $namespace = 'PHPAutoloadOverride'
     ) {
         if ($classLoader->getApcuPrefix() !== null) {
@@ -69,15 +70,15 @@ class Override
             $classLoader->loadClass(FileStreamWrapper::class);
         }
 
-        // Reset the function mappings.
-        self::$fileFunctionMappings = [];
-        self::$dirFunctionMappings = [];
+        // Reset the function call mappings.
+        self::$fileFunctionCallMappings = [];
+        self::$dirFunctionCallMappings = [];
 
-        // Initialize the collection of files we would need to load.
+        // Initialize the collection of files we would force to load (include).
         $autoloadCollection = new AutoloadCollection();
 
-        foreach ($functionMappings as $fqn => $mappings) {
-            $funcMappings = self::buildMappings($mappings, $namespace);
+        foreach ($functionCallMappings as $fqn => $mappings) {
+            $fqnFunctionCallMappings = self::buildMappings($mappings, $namespace);
 
             if (\substr($fqn, -1, 1) === '\\') {
                 // The given fqn is a namespace.
@@ -101,13 +102,29 @@ class Override
                             if (is_dir($dir) && !isset($handled[$dir])) {
                                 $handled[$dir] = true;
                                 //echo $dir . PHP_EOL;
-                                self::addNamespaceData([$dir], $funcMappings);
+                                self::addNamespaceData([$dir], $fqnFunctionCallMappings);
                                 $autoloadCollection->addDirectories([$dir]);
                             }
                         }
                     }
 
                     \array_unshift($popped, \array_pop($parts));
+                }
+
+                foreach ($classLoader->getClassMap() as $classMapFqn => $classMapPath) {
+                    if (substr($classMapFqn, 0, strlen($fqn)) === $fqn) {
+                        $p = realpath($classMapPath);
+                        if ($p === false) {
+                            continue;
+                        }
+
+                        self::$fileFunctionCallMappings[$p] = $fqnFunctionCallMappings;
+                        $autoloadCollection->addFile($p);
+                    }
+                }
+
+                foreach ($classLoader->getFallbackDirsPsr4() as $fallbackDirPsr4) {
+                    // TODO: Handle this case.
                 }
                 continue;
             }
@@ -124,7 +141,7 @@ class Override
                 continue;
             }
 
-            self::$fileFunctionMappings[$path] = $funcMappings;
+            self::$fileFunctionCallMappings[$path] = $fqnFunctionCallMappings;
             $autoloadCollection->addFile($path);
         }
 
@@ -140,6 +157,11 @@ class Override
         \clearstatcache();
     }
 
+    /**
+     * @param string[]|Closure[] $mappings
+     * @param string             $namespace
+     * @return array
+     */
     private static function buildMappings(array $mappings, string $namespace): array
     {
         $fcMappings = [];
@@ -149,7 +171,7 @@ class Override
             } else {
                 if (is_string($val)) {
                     $fcMappings['\\' . $key] = $val . '\\' . $key;
-                } elseif ($val instanceof \Closure) {
+                } elseif ($val instanceof Closure) {
                     $name = $key . '_' . spl_object_hash($val);
                     ClosureHandler::getInstance()->addMethod($name, $val);
 
@@ -169,13 +191,13 @@ class Override
             }
 
             $dir = \realpath($dir);
-            if (isset(self::$dirFunctionMappings[$dir])) {
-                self::$dirFunctionMappings[$dir] = \array_merge(
-                    self::$dirFunctionMappings[$dir],
+            if (isset(self::$dirFunctionCallMappings[$dir])) {
+                self::$dirFunctionCallMappings[$dir] = \array_merge(
+                    self::$dirFunctionCallMappings[$dir],
                     $functionMappings
                 );
             } else {
-                self::$dirFunctionMappings[$dir] = $functionMappings;
+                self::$dirFunctionCallMappings[$dir] = $functionMappings;
             }
         }
     }
@@ -190,14 +212,14 @@ class Override
         $filePath = \realpath($filePath);
 
         $mappings = [];
-        foreach (self::$dirFunctionMappings as $dir => $functionMappings) {
+        foreach (self::$dirFunctionCallMappings as $dir => $functionMappings) {
             if (\substr($filePath, 0, \strlen($dir)) === $dir) {
                 $mappings = \array_merge($mappings, $functionMappings);
             }
         }
 
-        if (isset(self::$fileFunctionMappings[$filePath])) {
-            $mappings = \array_merge($mappings, self::$fileFunctionMappings[$filePath]);
+        if (isset(self::$fileFunctionCallMappings[$filePath])) {
+            $mappings = \array_merge($mappings, self::$fileFunctionCallMappings[$filePath]);
         }
 
         return $mappings;
