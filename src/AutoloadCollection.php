@@ -21,19 +21,31 @@ class AutoloadCollection
      */
     private $paths = [];
 
+    /**
+     * @param string $path
+     */
     public function addFile(string $path): void
     {
-        $this->paths[$path] = true;
+        $path = realpath($path);
+        if ($path !== false) {
+            $this->paths[$path] = true;
+        }
     }
 
+    /**
+     * @param string[] $directories
+     */
     public function addDirectories(array $directories): void
     {
         foreach ($directories as $directory) {
-            if (!file_exists($directory)) {
+            if (!\file_exists($directory) || \is_dir($directory)) {
                 continue;
             }
 
-            $directory = realpath($directory);
+            $directory = \realpath($directory);
+            if ($directory === false) {
+                continue;
+            }
 
             $files = new RegexIterator(
                 new RecursiveIteratorIterator(
