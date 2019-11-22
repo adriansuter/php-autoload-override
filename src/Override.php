@@ -173,7 +173,7 @@ class Override
                     $fcMappings['\\' . $key] = $val . '\\' . $key;
                 } elseif ($val instanceof Closure) {
                     $name = $key . '_' . spl_object_hash($val);
-                    ClosureHandler::getInstance()->addMethod($name, $val);
+                    ClosureHandler::getInstance()->addClosure($name, $val);
 
                     $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
                 }

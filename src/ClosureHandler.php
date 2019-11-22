@@ -40,7 +40,7 @@ class ClosureHandler
      * @param string  $name
      * @param Closure $closure
      */
-    function addMethod(string $name, Closure $closure): void
+    function addClosure(string $name, Closure $closure): void
     {
         $this->closures[$name] = $closure;
     }
@@ -59,6 +59,6 @@ class ClosureHandler
             );
         }
 
-        throw new RuntimeException(\sprintf('Closure Override %s could not be found.', $name));
+        throw new RuntimeException(\sprintf('Closure Override "%s" could not be found.', $name));
     }
 }
