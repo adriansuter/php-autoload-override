@@ -38,7 +38,7 @@ class AutoloadCollection
     public function addDirectories(array $directories): void
     {
         foreach ($directories as $directory) {
-            if (!\file_exists($directory) || \is_dir($directory)) {
+            if (!\file_exists($directory) || !\is_dir($directory)) {
                 continue;
             }
 
