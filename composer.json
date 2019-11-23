@@ -1,6 +1,8 @@
 {
   "name": "adriansuter/php-autoload-override",
   "description": "Override fully qualified function calls inside your class methods in order to be able to mock them during testing.",
+  "type": "library",
+  "homepage": "https://adriansuter.github.io/php-autoload-override/",
   "keywords": [
     "php",
     "testing",
@@ -13,6 +15,9 @@
       "email": "adrian@suter-wirz.ch"
     }
   ],
+  "support": {
+    "issues": "https://github.com/adriansuter/php-autoload-override/issues"
+  },
   "autoload": {
     "psr-4": {
       "AdrianSuter\\Autoload\\Override\\": "src"
