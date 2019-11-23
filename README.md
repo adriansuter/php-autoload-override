@@ -47,11 +47,15 @@ The method would then use the `rand` function of the global scope to generate a 
 if the generated number is smaller equal to the given probability, then the method would return 
 the first color, otherwise the method would return the second color.
 
+### The problem 
+
 As we cannot control the output of the `rand` function (it is in global scope), we cannot unit test
 that method. Well, until now. Using the PHP-Autoload-Override library, it is possible to 
 override the `rand` function and therefore control its generated random number.
 
-So, after installing the library into the dev-environment, we would open the bootstrap script of our test suite
+### The solution
+
+After installing the PHP-Autoload-Override library, we would open the bootstrap script of our test suite
 (see also [PHPUnit Configuration](https://phpunit.readthedocs.io/en/8.4/configuration.html#the-bootstrap-attribute)).
 There we will write the following code
 
@@ -74,10 +78,10 @@ $classLoader = require_once __DIR__ . '/../vendor/autoload.php';
 ]);
 ```
 
-Now the class `Probability` would be loaded into the testing runtime such that all function calls to the global scoped 
-`rand()` function get overridden by the closure given above.
+Now the class `Probability` would be loaded into the PHPUnit runtime such that all function calls to the global scoped 
+`rand()` function in the class `Probability` get overridden by the closure given above.
 
-So we can write the test class as follows.
+Our test class can now be written as follows.
 
 ```php
 namespace My\App\Tests;
@@ -99,13 +103,14 @@ class ProbabilityTest extends TestCase
         $p = new Probability();
 
         $GLOBALS['rand_return'] = 35;
+
         $this->assertEquals('blue', $p->pick(34, 'red', 'blue'));
         $this->assertEquals('red', $p->pick(35, 'red', 'blue'));
     }
 }
 ```
 
-Our test case would call the `pick` method two times. The first one checks, if the `else`-block
+The test case `testRand` would call the `pick` method two times. The first one checks, if the `else`-block
 gets executed. The second one checks, if the `if`-block gets executed.
 
 Note that this override would only be applied during the unit tests.
