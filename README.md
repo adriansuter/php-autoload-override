@@ -1,4 +1,4 @@
-# PHP Autoload Override
+# PHP-Autoload-Override
 
 This library allows to override fully qualified function calls inside your class methods in order to
 be able to mock them during testing.
@@ -6,16 +6,16 @@ be able to mock them during testing.
 **NOTE: The library can be used for other scenarios as well. But we recommend to use it for testing purposes
 only.**
 
-See also https://adriansuter.github.io/php-autoload-override/.
+[PHP-Autoload-Override Website](https://adriansuter.github.io/php-autoload-override/)
 
 
-# Prerequisites
+## Requirements 
 
 - PHP 7.1 or later
 - Composer with PSR-4 (PSR-0 is not supported)
 
 
-# Installation
+## Installation
 
 ```bash
 $ composer require adriansuter/php-autoload-override
@@ -111,6 +111,11 @@ gets executed. The second one checks, if the `if`-block gets executed.
 Note that this override would only be applied during the unit tests.
 
 
-## Further Information
+## Learn More
 
-You can find more information on the [website](https://adriansuter.github.io/php-autoload-override/).
+- [PHP-Autoload-Override Website](https://adriansuter.github.io/php-autoload-override/)
+
+
+## License
+
+The PHP-Autoload-Override library is licensed under the MIT license. See [License File](LICENSE) for more information.
