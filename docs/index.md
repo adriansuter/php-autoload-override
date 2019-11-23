@@ -82,6 +82,8 @@ the php runtime.
 
 ## Usage
 
+TODO: Add a note that namespace defined overrides would only be applied to the namespace - not sub namespaces!
+
 
 ### Use in phpunit
 
