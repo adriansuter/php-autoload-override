@@ -21,8 +21,6 @@ class IntegrationTest extends TestCase
 
     public function testNamespaceOverride()
     {
-        $that = $this;
-
         Override::apply(self::$classLoader, [
             \My\Integration\TestNamespaceOverride\Moon::class => [
                 // [1]
@@ -58,6 +56,20 @@ class IntegrationTest extends TestCase
         $this->assertGreaterThanOrEqual(\time(), $earth->now());
     }
 
+    public function testCustomNamespaceOverride()
+    {
+        Override::apply(self::$classLoader, [
+            \My\Integration\TestCustomNamespaceOverride\Hash::class => [
+                'md5' => 'PHPCustomAutoloadOverride'
+            ]
+        ]);
+
+        require_once __DIR__ . '/assets/PHPCustomAutoloadOverride.php';
+
+        $hash = new \My\Integration\TestCustomNamespaceOverride\Hash();
+        $GLOBALS['md5_return'] = '---';
+        $this->assertEquals('---', $hash->hash('1'));
+    }
 
     public function testClosureOverride()
     {
