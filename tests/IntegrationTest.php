@@ -23,11 +23,9 @@ class IntegrationTest extends TestCase
     {
         Override::apply(self::$classLoader, [
             \My\Integration\TestNamespaceOverride\Moon::class => [
-                // [1]
                 'time'
             ],
             'My\\Integration\\TestNamespaceOverride\\' => [
-                // [2]
                 'substr'
             ],
         ]);
@@ -35,23 +33,24 @@ class IntegrationTest extends TestCase
         require_once __DIR__ . '/assets/PHPAutoloadOverride.php';
 
         $moon = new \My\Integration\TestNamespaceOverride\Moon();
+        $earth = new \My\Integration\TestNamespaceOverride\Earth();
 
+        $this->setName(__FUNCTION__ . ' (FQCN defined override to default NS)');
         $GLOBALS['time_return'] = 1;
         $this->assertEquals(1, $moon->now());
 
+        $this->setName(__FUNCTION__ . ' (FQCN defined override to default NS, function call uses an alias)');
         $GLOBALS['time_return'] = 2;
         $this->assertEquals(2, $moon->nowUseAlias());
 
-        $earth = new \My\Integration\TestNamespaceOverride\Earth();
-
-        // The method calls a function that is defined in the namespace itself.
+        $this->setName(__FUNCTION__ . ' (FQNS defined override to default NS, but function call uses a local function)');
         $this->assertEquals('GFE', $earth->substrLocal());
 
-        // The method calls the global \substr() function which has an override in [2].
+        $this->setName(__FUNCTION__ . ' (FQNS defined override to default NS)');
         $GLOBALS['substr_return'] = 'XYZ';
         $this->assertEquals('XYZ', $earth->substrGlobal());
 
-        // The method calls the global \time() function which has no override.
+        $this->setName(__FUNCTION__ . ' (No override)');
         $GLOBALS['time_return'] = 3;
         $this->assertGreaterThanOrEqual(\time(), $earth->now());
     }
@@ -125,9 +124,9 @@ class IntegrationTest extends TestCase
         $digital = new \My\Integration\TestClosureOverride\SubSpace\Digital();
         $this->assertEquals('_i_101_', $digital->minute());
 
-        // Override \date() [3] but not time().
+        $this->setName(__FUNCTION__ . ' (No override)');
         $mercury = new \My\Integration\TestClosureOverride\Solar\Mercury();
-        $this->assertRegExp('/_d.m.Y_\d{3}\d+_/', $mercury->now());
+        $this->assertEquals(\date('d.m.Y', \time()), $mercury->now('d.m.Y'));
     }
 
     public function testDouble()
@@ -150,5 +149,30 @@ class IntegrationTest extends TestCase
 
         $speech = new \AdrianSuter\Autoload\Override\SubSpace\Speech();
         $this->assertEquals(':', $speech->whisper(2));
+    }
+
+    public function testA()
+    {
+        Override::apply(self::$classLoader, [
+            \My\Integration\TestClassMapOverride\Calculator::class => [
+                'cos' => function (float $arg): float {
+                    return \sin($arg);
+                },
+            ],
+            'My\\Integration\\TestClassMapOverride\\' => [
+                'cos' => function (float $arg): float {
+                    return $arg * 2;
+                },
+            ]
+        ]);
+
+        $calculator = new \My\Integration\TestClassMapOverride\Calculator();
+        $this->assertEquals(\sin(\pi() / 2), $calculator->cos(\pi() / 2));
+
+        $geometry = new \My\Integration\TestClassMapOverride\SubNamespace\Geometry();
+        $this->assertEquals(1, $geometry->cos(0.5));
+
+        $otherCalculator = new \My\Integration\TestClassMapOverride\OtherCalculator();
+        $this->assertEquals(2, $otherCalculator->cos(1));
     }
 }

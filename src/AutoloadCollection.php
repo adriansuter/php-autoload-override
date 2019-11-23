@@ -9,11 +9,6 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RecursiveRegexIterator;
-use RegexIterator;
-
 class AutoloadCollection
 {
     /**
@@ -47,16 +42,17 @@ class AutoloadCollection
                 continue;
             }
 
-            $files = new RegexIterator(
-                new RecursiveIteratorIterator(
-                    new RecursiveDirectoryIterator($directory)
-                ),
-                '/^.+\.php$/i',
-                RecursiveRegexIterator::GET_MATCH
-            );
+//            $files = new RegexIterator(
+//                new RecursiveIteratorIterator(
+//                    new RecursiveDirectoryIterator($directory)
+//                ),
+//                '/^.+\.php$/i',
+//                RecursiveRegexIterator::GET_MATCH
+//            );
+            $files = glob($directory . '/*.php');
 
             foreach ($files as $file) {
-                $this->addFile($file[0]);
+                $this->addFile($file);
             }
         }
     }

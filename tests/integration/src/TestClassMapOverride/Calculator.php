@@ -7,12 +7,12 @@
 
 declare(strict_types=1);
 
-namespace My\Integration\TestClosureOverride\Solar;
+namespace My\Integration\TestClassMapOverride;
 
-class Mercury
+class Calculator
 {
-    public function now(string $format): string
+    public function cos(float $arg): float
     {
-        return \date($format, \time());
+        return \cos($arg);
     }
 }
