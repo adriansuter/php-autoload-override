@@ -89,7 +89,7 @@ namespace My\App\Tests;
 use My\App\Probability;
 use PHPUnit\Framework\TestCase;
 
-class ProbabilityTest extends TestCase
+final class ProbabilityTest extends TestCase
 {
     protected function tearDown()
     {
@@ -98,7 +98,7 @@ class ProbabilityTest extends TestCase
         }
     }
 
-    public function testRand()
+    public function testPick()
     {
         $p = new Probability();
 
@@ -110,8 +110,9 @@ class ProbabilityTest extends TestCase
 }
 ```
 
-The test case `testRand` would call the `pick` method two times. The first one checks, if the `else`-block
-gets executed. The second one checks, if the `if`-block gets executed.
+The test case `testPick` would call the `pick` method two times. As we have overridden the `\rand` function, we can
+control its returned value to be always 35. So the first call checks, if the `else`-block
+gets executed. The second one checks, if the `if`-block gets executed. Hooray, 100% code coverage.
 
 Note that this override would only be applied during the unit tests.
 
