@@ -18,7 +18,7 @@ only.**
 ## Installation
 
 ```bash
-$ composer require adriansuter/php-autoload-override
+$ composer require --dev adriansuter/php-autoload-override v0.1-alpha
 ```
 
 
