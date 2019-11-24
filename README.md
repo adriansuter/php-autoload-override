@@ -1,5 +1,9 @@
 # PHP-Autoload-Override
 
+[![Build Status](https://travis-ci.org/adriansuter/php-autoload-override.svg?branch=master)](https://travis-ci.org/adriansuter/php-autoload-override)
+[![Total Downloads](https://poser.pugx.org/adriansuter/php-autoload-override/downloads)](https://packagist.org/packages/adriansuter/php-autoload-override)
+[![License](https://poser.pugx.org/adriansuter/php-autoload-override/license)](https://packagist.org/packages/adriansuter/php-autoload-override)
+
 This library allows to override fully qualified function calls inside your class methods in order to
 be able to mock them during testing.
 
