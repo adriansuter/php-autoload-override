@@ -11,13 +11,11 @@ class IntegrationClosureTest extends AbstractIntegrationTest
 {
     protected function getOverrideDeclarations(): array
     {
-        $that = $this;
-
         return [
             // Test that the class loader can find the file to that class.
             \My\Integration\TestClosureOverride\Clock::class => [
                 'time' => function () {
-                    return 99;
+                    return 100;
                 },
                 'rand' => function (int $min, int $max): int {
                     return $min + $max;
@@ -55,10 +53,10 @@ class IntegrationClosureTest extends AbstractIntegrationTest
         $clock = new \My\Integration\TestClosureOverride\Clock();
 
         // Calls \time() > Overridden by FQCN-declaration.
-        $this->assertEquals(99, $clock->time());
+        $this->assertEquals(100, $clock->time());
 
         // Calls \time()-alias > Overridden by FQCN-declaration.
-        $this->assertEquals(99, $clock->timeWithAlias());
+        $this->assertEquals(100, $clock->timeWithAlias());
 
         // Calls \rand() > Overridden by FQCN-declaration.
         $this->assertEquals(11, $clock->rand(1, 10));
@@ -72,7 +70,7 @@ class IntegrationClosureTest extends AbstractIntegrationTest
         $this->assertGreaterThanOrEqual(\time(), $subClock->time());
 
         // Parent > Calls \time()-alias > Overridden by FQCN-declaration.
-        $this->assertEquals(99, $subClock->timeWithAlias());
+        $this->assertEquals(100, $subClock->timeWithAlias());
 
         // Calls parent > Calls \rand() > Overridden by FQCN-declaration.
         $this->assertEquals(9, $subClock->rand(3, 6));
@@ -111,7 +109,7 @@ class IntegrationClosureTest extends AbstractIntegrationTest
         $this->assertEquals(101, $subSpaceClock->time());
 
         // Parent > Calls \time()-alias > Overridden by FQCN-declaration.
-        $this->assertEquals(99, $subSpaceClock->timeWithAlias());
+        $this->assertEquals(100, $subSpaceClock->timeWithAlias());
 
         // Calls \rand() > No override.
         $rand = $subSpaceClock->rand(1, 10);
