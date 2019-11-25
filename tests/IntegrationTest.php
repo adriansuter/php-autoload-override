@@ -19,42 +19,6 @@ class IntegrationTest extends TestCase
         self::$classLoader = require(__DIR__ . '/../vendor/autoload.php');
     }
 
-    public function testNamespaceOverride()
-    {
-        Override::apply(self::$classLoader, [
-            \My\Integration\TestNamespaceOverride\Moon::class => [
-                'time'
-            ],
-            'My\\Integration\\TestNamespaceOverride\\' => [
-                'substr'
-            ],
-        ]);
-
-        require_once __DIR__ . '/assets/PHPAutoloadOverride.php';
-
-        $moon = new \My\Integration\TestNamespaceOverride\Moon();
-        $earth = new \My\Integration\TestNamespaceOverride\Earth();
-
-        $this->setName(__FUNCTION__ . ' (FQCN defined override to default NS)');
-        $GLOBALS['time_return'] = 1;
-        $this->assertEquals(1, $moon->now());
-
-        $this->setName(__FUNCTION__ . ' (FQCN defined override to default NS, function call uses an alias)');
-        $GLOBALS['time_return'] = 2;
-        $this->assertEquals(2, $moon->nowUseAlias());
-
-        $this->setName(__FUNCTION__ . ' (FQNS defined override to default NS, but function call uses a local function)');
-        $this->assertEquals('GFE', $earth->substrLocal());
-
-        $this->setName(__FUNCTION__ . ' (FQNS defined override to default NS)');
-        $GLOBALS['substr_return'] = 'XYZ';
-        $this->assertEquals('XYZ', $earth->substrGlobal());
-
-        $this->setName(__FUNCTION__ . ' (No override)');
-        $GLOBALS['time_return'] = 3;
-        $this->assertGreaterThanOrEqual(\time(), $earth->now());
-    }
-
     public function testCustomNamespaceOverride()
     {
         Override::apply(self::$classLoader, [

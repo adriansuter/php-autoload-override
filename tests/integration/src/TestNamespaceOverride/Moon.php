@@ -11,15 +11,27 @@ namespace My\Integration\TestNamespaceOverride;
 
 use function time as time_alias;
 
+/**
+ * Overrides declared for
+ * - \substr() : FQNS
+ * - \time() : FQCN
+ *
+ * @package My\Integration\TestNamespaceOverride
+ */
 class Moon
 {
-    public function now(): int
+    public function time(): int
     {
         return \time();
     }
 
-    public function nowUseAlias(): int
+    public function timeUseAlias(): int
     {
         return time_alias();
+    }
+
+    public function substr(string $input, int $start, int $length): string
+    {
+        return \substr($input, $start, $length);
     }
 }
