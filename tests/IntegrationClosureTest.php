@@ -16,72 +16,130 @@ class IntegrationClosureTest extends AbstractIntegrationTest
         return [
             // Test that the class loader can find the file to that class.
             \My\Integration\TestClosureOverride\Clock::class => [
-                // [1]
                 'time' => function () {
                     return 99;
+                },
+                'rand' => function (int $min, int $max): int {
+                    return $min + $max;
                 }
             ],
-            // Test that the class loader can find the file to that class.
-            \My\Integration\TestClosureOverride\BigBen::class => [
-                // [2]
-                'date' => function ($format, $timestamp) use ($that) {
-                    $that->assertEquals('h', $format);
-                    $that->assertNotEquals(99, $timestamp);
-                    $that->assertNotEquals(101, $timestamp);
-
-                    return '6';
+            \My\Integration\TestClosureOverride\SubSpace\Digital::class => [
+                'rand' => function (int $min, int $max): int {
+                    return 2 * ($min + $max);
                 }
             ],
             // Test that Override finds PSR-4 directory belonging to the namespace "My\Integration" and from there the
             // directory to the "TestClosureOverride" sub namespace.
             'My\\Integration\\TestClosureOverride\\' => [
-                // [3]
-                'date' => function ($format, $timestamp) {
-                    return '_' . $format . '_' . $timestamp . '_';
+                'rand' => function (int $min, int $max): int {
+                    return 3 * ($min + $max);
                 }
             ],
             // Test that Override finds PSR-4 directory belonging to the namespace "My\Integration" and from there the
             // directory to the "TestClosureOverride\SubSpace" sub namespace.
             'My\\Integration\\TestClosureOverride\\SubSpace\\' => [
-                // [4]
                 'time' => function () {
                     return 101;
                 }
             ],
-            \My\Integration\TestClosureOverride\Solar\Saturn::class => [
-                'rand' => function (int $min, int $max): int {
-                    return $min + $max;
+            \My\Integration\TestClosureOverride\OtherSpace\Other::class => [
+                'time' => function (): int {
+                    return 102;
                 }
             ]
         ];
     }
 
-    public function test1()
+    public function testClock()
     {
-        // Override \time() [1] and \date() [3].
         $clock = new \My\Integration\TestClosureOverride\Clock();
-        $this->assertEquals(99, $clock->now());
-        $this->assertEquals('_H_99_', $clock->hour());
+
+        // Calls \time() > Overridden by FQCN-declaration.
+        $this->assertEquals(99, $clock->time());
+
+        // Calls \time()-alias > Overridden by FQCN-declaration.
+        $this->assertEquals(99, $clock->timeWithAlias());
+
+        // Calls \rand() > Overridden by FQCN-declaration.
+        $this->assertEquals(11, $clock->rand(1, 10));
     }
 
-    public function test2()
+    public function testSubClock()
     {
-        // Override \date() [2, not 3, not 4].
-        $bigBen = new \My\Integration\TestClosureOverride\BigBen();
-        $this->assertEquals('******', $bigBen->hour());
+        $subClock = new \My\Integration\TestClosureOverride\SubClock();
 
-        // Override \date() [3] but not \time().
-        $digital = new \My\Integration\TestClosureOverride\SubSpace\Digital();
-        $this->assertEquals('01.01.1970 00:01:41', $digital->now());
+        // Calls \time() > No override.
+        $this->assertGreaterThanOrEqual(\time(), $subClock->time());
 
-        $this->setName(__FUNCTION__ . ' (No override)');
-        $mercury = new \My\Integration\TestClosureOverride\Solar\Mercury();
-        $this->assertEquals(\date('d.m.Y', \time()), $mercury->now('d.m.Y'));
+        // Parent > Calls \time()-alias > Overridden by FQCN-declaration.
+        $this->assertEquals(99, $subClock->timeWithAlias());
 
-        $this->setName(__FUNCTION__ . ' (Override of \rand(), but not of others as this class is in a sub namespace)');
-        $saturn = new \My\Integration\TestClosureOverride\Solar\Saturn();
-        $this->assertEquals(\date('d.m.Y', \time()), $saturn->now('d.m.Y'));
-        $this->assertEquals(10, $saturn->rand(1, 9));
+        // Calls parent > Calls \rand() > Overridden by FQCN-declaration.
+        $this->assertEquals(9, $subClock->rand(3, 6));
     }
 
+    public function testDigital()
+    {
+        $digital = new \My\Integration\TestClosureOverride\SubSpace\Digital();
+
+        // Calls \time() > Overridden by FQNS-declaration.
+        $this->assertEquals(101, $digital->time());
+
+        // Calls \rand() > Overridden by FQCN-declaration.
+        $this->assertEquals(22, $digital->rand(1, 10));
+    }
+
+    public function testSubDigital()
+    {
+        $subDigital = new \My\Integration\TestClosureOverride\SubDigital();
+
+        // Parent > Calls \time() > Overridden by FQNS-declaration.
+        $this->assertEquals(101, $subDigital->time());
+
+        // Calls \time() > No override.
+        $this->assertGreaterThanOrEqual(\time(), $subDigital->subTime());
+
+        // Calls \rand() > Overridden by FQNS.
+        $this->assertEquals(33, $subDigital->rand(1, 10));
+    }
+
+    public function testSubSpaceClock()
+    {
+        $subSpaceClock = new \My\Integration\TestClosureOverride\SubSpace\SubSpaceClock();
+
+        // Calls \time() > Overridden by FQNS.
+        $this->assertEquals(101, $subSpaceClock->time());
+
+        // Parent > Calls \time()-alias > Overridden by FQCN-declaration.
+        $this->assertEquals(99, $subSpaceClock->timeWithAlias());
+
+        // Calls \rand() > No override.
+        $rand = $subSpaceClock->rand(1, 10);
+        $this->assertGreaterThanOrEqual(1, $rand);
+        $this->assertLessThanOrEqual(10, $rand);
+    }
+
+    public function testOther()
+    {
+        $other = new \My\Integration\TestClosureOverride\OtherSpace\Other();
+
+        // Calls \time() > Overridden by FQCN-declaration.
+        $this->assertEquals(102, $other->time());
+
+        // Calls \rand() > No override.
+        $rand = $other->rand(1, 10);
+        $this->assertGreaterThanOrEqual(1, $rand);
+        $this->assertLessThanOrEqual(10, $rand);
+    }
+
+    public function testSpace()
+    {
+        $space = new \My\Integration\TestClosureOverride\OtherSpace\Space();
+
+        // Calls \time() > No override.
+        $this->assertGreaterThanOrEqual(\time(), $space->time());
+
+        // Calls time() which is a local function in the namespace.
+        $this->assertEquals(105, $space->timeLocal());
+    }
 }

@@ -9,15 +9,29 @@ declare(strict_types=1);
 
 namespace My\Integration\TestClosureOverride;
 
+use function time as timeAlias;
+
+/**
+ * Overrides declared for
+ * - \time() : FQCN
+ * - \rand() : FQCN
+ *
+ * @package My\Integration\TestClosureOverride
+ */
 class Clock
 {
-    public function now(): int
+    public function time(): int
     {
         return \time();
     }
 
-    public function hour(): string
+    public function timeWithAlias(): int
     {
-        return \date('H', \time());
+        return timeAlias();
+    }
+
+    public function rand(int $min, int $max): int
+    {
+        return \rand($min, $max);
     }
 }

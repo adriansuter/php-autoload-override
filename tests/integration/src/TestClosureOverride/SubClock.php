@@ -7,17 +7,22 @@
 
 declare(strict_types=1);
 
-namespace My\Integration\TestClosureOverride\Solar;
+namespace My\Integration\TestClosureOverride;
 
-class Saturn
+/**
+ * No overrides declared.
+ *
+ * @package My\Integration\TestClosureOverride
+ */
+class SubClock extends Clock
 {
-    public function now(string $format): string
+    public function time(): int
     {
-        return \date($format, \time());
+        return \time();
     }
 
     public function rand(int $min, int $max): int
     {
-        return \rand($min, $max);
+        return parent::rand($min, $max);
     }
 }

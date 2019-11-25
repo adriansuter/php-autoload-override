@@ -7,16 +7,15 @@
 
 declare(strict_types=1);
 
-namespace My\Integration\TestClosureOverride\SubSpace;
+namespace My\Integration\TestClosureOverride\OtherSpace;
 
 /**
  * Overrides declared for
- * - \time() : FQNS
- * - \rand() : FQCN
+ * - \time() : FQCN
  *
- * @package My\Integration\TestClosureOverride\SubSpace
+ * @package My\Integration\TestClosureOverride\OtherSpace
  */
-class Digital
+class Other
 {
     public function time(): int
     {
