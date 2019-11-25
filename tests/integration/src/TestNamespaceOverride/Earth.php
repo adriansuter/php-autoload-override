@@ -14,6 +14,12 @@ function substr(string $input, int $start, int $length)
     return \substr(\strrev($input), $start, $length);
 }
 
+/**
+ * Overrides declared for
+ * - \substr() : FQNS
+ *
+ * @package My\Integration\TestNamespaceOverride
+ */
 class Earth
 {
     public function substrLocal(): string
@@ -26,7 +32,7 @@ class Earth
         return \substr('ABCDEFG', 0, 3);
     }
 
-    public function now(): int
+    public function time(): int
     {
         return \time();
     }

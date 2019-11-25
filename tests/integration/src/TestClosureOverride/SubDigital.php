@@ -7,18 +7,18 @@
 
 declare(strict_types=1);
 
-namespace My\Integration\TestClosureOverride\SubSpace;
+namespace My\Integration\TestClosureOverride;
+
+use My\Integration\TestClosureOverride\SubSpace\Digital;
 
 /**
- * Overrides declared for
- * - \time() : FQNS
- * - \rand() : FQCN
+ * No overrides declared.
  *
- * @package My\Integration\TestClosureOverride\SubSpace
+ * @package My\Integration\TestClosureOverride
  */
-class Digital
+class SubDigital extends Digital
 {
-    public function time(): int
+    public function subTime(): int
     {
         return \time();
     }

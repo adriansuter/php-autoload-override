@@ -9,14 +9,15 @@ declare(strict_types=1);
 
 namespace My\Integration\TestClosureOverride\SubSpace;
 
+use My\Integration\TestClosureOverride\Clock;
+
 /**
  * Overrides declared for
- * - \time() : FQNS
  * - \rand() : FQCN
  *
  * @package My\Integration\TestClosureOverride\SubSpace
  */
-class Digital
+class SubSpaceClock extends Clock
 {
     public function time(): int
     {

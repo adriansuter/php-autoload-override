@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
+/**
+ * Overrides declared for
+ * - \str_repeat() : FQCN
+ *
+ * @package AdrianSuter\Autoload\Override
+ */
 class Science
 {
     public function crosses($amount): string

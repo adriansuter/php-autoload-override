@@ -9,10 +9,20 @@ declare(strict_types=1);
 
 namespace My\Integration\TestClosureOverride;
 
-class BigBen extends Clock
+/**
+ * No overrides declared.
+ *
+ * @package My\Integration\TestClosureOverride
+ */
+class SubClock extends Clock
 {
-    public function hour(): string
+    public function time(): int
     {
-        return \str_repeat('*', (int)\date('h', \time()));
+        return \time();
+    }
+
+    public function rand(int $min, int $max): int
+    {
+        return parent::rand($min, $max);
     }
 }

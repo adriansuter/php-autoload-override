@@ -7,24 +7,27 @@
 
 declare(strict_types=1);
 
-namespace My\Integration\TestClosureOverride\SubSpace;
+namespace My\Integration\TestClosureOverride\OtherSpace;
+
+function time(): int
+{
+    return 105;
+}
 
 /**
- * Overrides declared for
- * - \time() : FQNS
- * - \rand() : FQCN
+ * No overrides declared.
  *
- * @package My\Integration\TestClosureOverride\SubSpace
+ * @package My\Integration\TestClosureOverride\OtherSpace
  */
-class Digital
+class Space
 {
     public function time(): int
     {
         return \time();
     }
 
-    public function rand(int $min, int $max): int
+    public function timeLocal(): int
     {
-        return \rand($min, $max);
+        return time();
     }
 }

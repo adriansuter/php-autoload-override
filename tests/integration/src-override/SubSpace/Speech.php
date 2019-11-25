@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override\SubSpace;
 
+/**
+ * Overrides declared for
+ * - \str_repeat() : FQNS
+ *
+ * @package AdrianSuter\Autoload\Override\SubSpace
+ */
 class Speech
 {
     public function whisper(int $amount): string
