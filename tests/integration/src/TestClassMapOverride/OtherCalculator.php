@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 namespace My\Integration\TestClassMapOverride;
 
+/**
+ * Overrides declared for
+ * - \cos() : FQNS
+ *
+ * @package My\Integration\TestClassMapOverride
+ */
 class OtherCalculator
 {
     public function cos(float $arg): float

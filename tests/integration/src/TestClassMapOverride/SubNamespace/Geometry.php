@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 namespace My\Integration\TestClassMapOverride\SubNamespace;
 
+/**
+ * Overrides declared for
+ * - \cos() : FQNS
+ *
+ * @package My\Integration\TestClassMapOverride\SubNamespace
+ */
 class Geometry
 {
     public function cos(float $arg): float
