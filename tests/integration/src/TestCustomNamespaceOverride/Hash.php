@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 namespace My\Integration\TestCustomNamespaceOverride;
 
+/**
+ * Overrides declared for
+ * - \md5() : FQCN
+ *
+ * @package My\Integration\TestCustomNamespaceOverride
+ */
 class Hash
 {
     public function hash(string $str): string
