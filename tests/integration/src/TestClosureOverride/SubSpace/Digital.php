@@ -11,8 +11,8 @@ namespace My\Integration\TestClosureOverride\SubSpace;
 
 class Digital
 {
-    public function minute(): string
+    public function now(): string
     {
-        return \date('i', \time());
+        return \date('d.m.Y H:i:s', \time());
     }
 }

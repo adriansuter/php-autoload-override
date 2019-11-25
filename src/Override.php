@@ -217,13 +217,18 @@ class Override
     public static function getFunctionMappings(string $filePath): array
     {
         $filePath = \realpath($filePath);
+        $dirPath = dirname($filePath);
 
         $mappings = [];
-        foreach (self::$dirFunctionCallMappings as $dir => $functionMappings) {
-            if (\substr($filePath, 0, \strlen($dir)) === $dir) {
-                $mappings = \array_merge($mappings, $functionMappings);
-            }
+        if ( isset(self::$dirFunctionCallMappings[$dirPath])) {
+            $mappings = \array_merge($mappings, self::$dirFunctionCallMappings[$dirPath]);
         }
+//        foreach (self::$dirFunctionCallMappings as $dir => $functionMappings) {
+//            if (\substr($filePath, 0, \strlen($dir)) === $dir) {
+//                //echo $filePath . ' -- ' . $dir . PHP_EOL;
+//                $mappings = \array_merge($mappings, $functionMappings);
+//            }
+//        }
 
         if (isset(self::$fileFunctionCallMappings[$filePath])) {
             $mappings = \array_merge($mappings, self::$fileFunctionCallMappings[$filePath]);
