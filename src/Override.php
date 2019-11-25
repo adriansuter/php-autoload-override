@@ -152,7 +152,7 @@ class Override
             $autoloadCollection->addFile($path);
         }
 
-        // Load the classes that are affected by the fqfc-override converter.
+        // Load the classes that are affected by the FQFC-override converter.
         \stream_wrapper_unregister('file');
         \stream_wrapper_register('file', FileStreamWrapper::class);
         foreach ($autoloadCollection->getFilePaths() as $file) {
@@ -167,6 +167,7 @@ class Override
     /**
      * @param string[]|Closure[] $mappings
      * @param string             $namespace
+     *
      * @return array
      */
     private static function buildMappings(array $mappings, string $namespace): array
@@ -220,15 +221,9 @@ class Override
         $dirPath = dirname($filePath);
 
         $mappings = [];
-        if ( isset(self::$dirFunctionCallMappings[$dirPath])) {
+        if (isset(self::$dirFunctionCallMappings[$dirPath])) {
             $mappings = \array_merge($mappings, self::$dirFunctionCallMappings[$dirPath]);
         }
-//        foreach (self::$dirFunctionCallMappings as $dir => $functionMappings) {
-//            if (\substr($filePath, 0, \strlen($dir)) === $dir) {
-//                //echo $filePath . ' -- ' . $dir . PHP_EOL;
-//                $mappings = \array_merge($mappings, $functionMappings);
-//            }
-//        }
 
         if (isset(self::$fileFunctionCallMappings[$filePath])) {
             $mappings = \array_merge($mappings, self::$fileFunctionCallMappings[$filePath]);
