@@ -215,21 +215,21 @@ final class FileStreamWrapperTest extends TestCase
     {
         $filePath = $this->createTempFile();
 
-        $fp = fopen($filePath, 'w+');
+        $fp = \fopen($filePath, 'w+');
 
-        $this->assertTrue(stream_supports_lock($fp));
-        $this->assertFalse(stream_set_blocking($fp, true));
+        $this->assertTrue(\stream_supports_lock($fp));
+        // $this->assertFalse(\stream_set_blocking($fp, true));
 
-        flock($fp, LOCK_SH);
-        flock($fp, LOCK_EX);
+        \flock($fp, LOCK_SH);
+        \flock($fp, LOCK_EX);
 
-        stream_set_timeout($fp, 5, 0);
-        stream_set_write_buffer($fp, 2048);
+        \stream_set_timeout($fp, 5, 0);
+        \stream_set_write_buffer($fp, 2048);
 
-        stream_set_blocking($fp, false);
-        stream_set_write_buffer($fp, 0);
+        \stream_set_blocking($fp, false);
+        \stream_set_write_buffer($fp, 0);
 
-        fclose($fp);
+        \fclose($fp);
 
         $this->deleteTempFile($filePath);
     }
