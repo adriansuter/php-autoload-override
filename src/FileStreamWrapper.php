@@ -275,7 +275,7 @@ class FileStreamWrapper
         $r = false;
         switch ($option) {
             case STREAM_META_TOUCH:
-                if ($value[0] === null) {
+                if (!isset($value[0]) || $value[0] === null) {
                     $r = \touch($path);
                 } else {
                     $r = \touch($path, $value[0], $value[1]);

@@ -123,9 +123,9 @@ final class FileStreamWrapperTest extends TestCase
     {
         $filePath = $this->createTempFile();
 
-        $this->assertTrue(touch($filePath));
-        $this->assertTrue(touch($filePath, \time()));
-        $this->assertTrue(touch($filePath, \time(), \time()));
+        $this->assertTrue(\touch($filePath));
+        $this->assertTrue(\touch($filePath, \time()));
+        $this->assertTrue(\touch($filePath, \time(), \time()));
 
         $this->deleteTempFile($filePath);
     }
