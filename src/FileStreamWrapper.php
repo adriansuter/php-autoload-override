@@ -28,12 +28,12 @@ class FileStreamWrapper
      */
     public function dir_closedir(): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        closedir($this->resource);
+        \closedir($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return true;
     }
@@ -48,18 +48,18 @@ class FileStreamWrapper
      */
     public function dir_opendir(string $path, int $options): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        if (is_resource($this->context)) {
-            $this->resource = opendir($path, $this->context);
+        if (\is_resource($this->context)) {
+            $this->resource = \opendir($path, $this->context);
         } else {
-            $this->resource = opendir($path);
+            $this->resource = \opendir($path);
         }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
-        return is_resource($this->resource);
+        return \is_resource($this->resource);
     }
 
     /**
@@ -69,12 +69,12 @@ class FileStreamWrapper
      */
     public function dir_readdir()
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = readdir($this->resource);
+        $r = \readdir($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -86,12 +86,12 @@ class FileStreamWrapper
      */
     public function dir_rewinddir(): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        rewinddir($this->resource);
+        \rewinddir($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return true;
     }
@@ -107,17 +107,17 @@ class FileStreamWrapper
      */
     public function mkdir(string $path, int $mode, int $options): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
         $recursive = $options & STREAM_MKDIR_RECURSIVE ? true : false;
-        if (is_resource($this->context)) {
-            $r = mkdir($path, $mode, $recursive, $this->context);
+        if (\is_resource($this->context)) {
+            $r = \mkdir($path, $mode, $recursive, $this->context);
         } else {
-            $r = mkdir($path, $mode, $recursive);
+            $r = \mkdir($path, $mode, $recursive);
         }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -132,16 +132,16 @@ class FileStreamWrapper
      */
     public function rename(string $path_from, string $path_to): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        if (is_resource($this->context)) {
-            $r = rename($path_from, $path_to, $this->context);
+        if (\is_resource($this->context)) {
+            $r = \rename($path_from, $path_to, $this->context);
         } else {
-            $r = rename($path_from, $path_to);
+            $r = \rename($path_from, $path_to);
         }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -156,22 +156,22 @@ class FileStreamWrapper
      */
     public function rmdir(string $path, int $options): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        if (is_resource($this->context)) {
-            $r = rmdir($path, $this->context);
+        if (\is_resource($this->context)) {
+            $r = \rmdir($path, $this->context);
         } else {
-            $r = rmdir($path);
+            $r = \rmdir($path);
         }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
 
     /**
-     * Retrieve the underlaying resource.
+     * Retrieve the underlying resource.
      *
      * @param int $cast_as
      *
@@ -179,7 +179,7 @@ class FileStreamWrapper
      */
     public function stream_cast(int $cast_as)
     {
-        if (is_resource($this->resource)) {
+        if (\is_resource($this->resource)) {
             return $this->resource;
         }
 
@@ -191,12 +191,12 @@ class FileStreamWrapper
      */
     public function stream_close(): void
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        fclose($this->resource);
+        \fclose($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
     }
 
     /**
@@ -206,12 +206,12 @@ class FileStreamWrapper
      */
     public function stream_eof(): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = feof($this->resource);
+        $r = \feof($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -223,12 +223,12 @@ class FileStreamWrapper
      */
     public function stream_flush(): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = fflush($this->resource);
+        $r = \fflush($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -242,13 +242,19 @@ class FileStreamWrapper
      */
     public function stream_lock(int $operation): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        // TODO Third param of flock ?
-        $r = flock($this->resource, $operation);
+        $r = true;
+        if ($operation & LOCK_SH) {
+            $r = \flock($this->resource, $operation, $wouldblock);
+        } elseif ($operation & LOCK_EX) {
+            $r = \flock($this->resource, $operation, $wouldblock);
+        } elseif ($operation & LOCK_UN) {
+            $r = \flock($this->resource, $operation, $wouldblock);
+        }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -264,28 +270,32 @@ class FileStreamWrapper
      */
     public function stream_metadata(string $path, int $option, $value): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
         $r = false;
         switch ($option) {
             case STREAM_META_TOUCH:
-                $r = touch($path, $value[0], $value[1]);
+                if ($value[0] === null) {
+                    $r = \touch($path);
+                } else {
+                    $r = \touch($path, $value[0], $value[1]);
+                }
                 break;
             case STREAM_META_OWNER_NAME:
             case STREAM_META_OWNER:
-                $r = chown($path, $value);
+                $r = \chown($path, $value);
                 break;
             case STREAM_META_GROUP_NAME:
             case STREAM_META_GROUP:
-                $r = chgrp($path, $value);
+                $r = \chgrp($path, $value);
                 break;
             case STREAM_META_ACCESS:
-                $r = chmod($path, $value);
+                $r = \chmod($path, $value);
                 break;
         }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -302,7 +312,7 @@ class FileStreamWrapper
      */
     public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
         $usePath = $options & STREAM_USE_PATH ? true : false;
         $reportErrors = $options & STREAM_REPORT_ERRORS ? true : false;
@@ -313,28 +323,27 @@ class FileStreamWrapper
 
         // Replace the global function calls into local function calls.
         if (!empty($functionCallMappings)) {
-            if (is_resource($this->context)) {
-                $source = file_get_contents($path, $usePath, $this->context);
+            if (\is_resource($this->context)) {
+                $source = \file_get_contents($path, $usePath, $this->context);
             } else {
-                $source = file_get_contents($path, $usePath);
+                $source = \file_get_contents($path, $usePath);
             }
 
             $source = Override::getCodeConverter()->convert($source, $functionCallMappings);
 
-            $this->resource = tmpfile();
-            fwrite($this->resource, $source);
-            fseek($this->resource, 0);
-        } elseif (is_resource($this->context)) {
-            $this->resource = fopen($path, $mode, $usePath, $this->context);
+            $this->resource = \tmpfile();
+            \fwrite($this->resource, $source);
+            \fseek($this->resource, 0);
+        } elseif (\is_resource($this->context)) {
+            $this->resource = \fopen($path, $mode, $usePath, $this->context);
         } else {
-            $this->resource = fopen($path, $mode, $usePath);
+            $this->resource = \fopen($path, $mode, $usePath);
         }
 
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
-
-        return is_resource($this->resource) ? true : false;
+        return \is_resource($this->resource) ? true : false;
     }
 
     /**
@@ -346,14 +355,14 @@ class FileStreamWrapper
      */
     public function stream_read(int $count): string
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = fgets($this->resource, $count);
+        $r = \fgets($this->resource, $count);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
-        if (!is_string($r)) {
+        if (!\is_string($r)) {
             return '';
         }
 
@@ -371,12 +380,12 @@ class FileStreamWrapper
      */
     public function stream_seek(int $offset, int $whence = SEEK_SET): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = fseek($this->resource, $offset, $whence);
+        $r = \fseek($this->resource, $offset, $whence);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r < 0 ? false : true;
     }
@@ -390,11 +399,34 @@ class FileStreamWrapper
      *
      * @return bool
      */
-    public function stream_set_option(int $option, int $arg1, int $arg2): bool
+    public function stream_set_option(int $option, int $arg1, ?int $arg2): bool
     {
-        // TODO Implement this.
+        \stream_wrapper_restore('file');
 
-        return false;
+        $r = false;
+        switch ($option) {
+            case STREAM_OPTION_BLOCKING:
+                $r = \stream_set_blocking($this->resource, $arg1 ? true : false);
+                break;
+            case STREAM_OPTION_READ_TIMEOUT:
+                $r = \stream_set_timeout($this->resource, $arg1, $arg2);
+                break;
+            case STREAM_OPTION_WRITE_BUFFER:
+                switch ($arg1) {
+                    case STREAM_BUFFER_NONE:
+                        $r = \stream_set_write_buffer($this->resource, 0) ? false : true;
+                        break;
+                    case STREAM_BUFFER_FULL:
+                        $r = \stream_set_write_buffer($this->resource, $arg2) ? false : true;
+                        break;
+                }
+                break;
+        }
+
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
+
+        return $r;
     }
 
     /**
@@ -404,12 +436,12 @@ class FileStreamWrapper
      */
     public function stream_stat(): array
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = fstat($this->resource);
+        $r = \fstat($this->resource);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -421,12 +453,12 @@ class FileStreamWrapper
      */
     public function stream_tell(): int
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = fseek($this->resource, 0, SEEK_CUR);
+        $r = \fseek($this->resource, 0, SEEK_CUR);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -440,12 +472,12 @@ class FileStreamWrapper
      */
     public function stream_truncate(int $new_size): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = ftruncate($this->resource, $new_size);
+        $r = \ftruncate($this->resource, $new_size);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -459,14 +491,14 @@ class FileStreamWrapper
      */
     public function stream_write(string $data): int
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = fwrite($this->resource, $data);
+        $r = \fwrite($this->resource, $data);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
-        if (is_int($r)) {
+        if (\is_int($r)) {
             return $r;
         }
 
@@ -482,12 +514,12 @@ class FileStreamWrapper
      */
     public function unlink(string $path): bool
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
-        $r = unlink($path);
+        $r = \unlink($path);
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
@@ -502,19 +534,19 @@ class FileStreamWrapper
      */
     public function url_stat(string $path, int $flags)
     {
-        stream_wrapper_restore('file');
+        \stream_wrapper_restore('file');
 
         $urlStatLink = $flags & STREAM_URL_STAT_LINK ? true : false;
         $urlStatQuiet = $flags & STREAM_URL_STAT_QUIET ? true : false;
 
         if ($urlStatLink) {
-            $r = $urlStatQuiet ? @lstat($path) : lstat($path);
+            $r = $urlStatQuiet ? @\lstat($path) : \lstat($path);
         } else {
-            $r = $urlStatQuiet ? @stat($path) : stat($path);
+            $r = $urlStatQuiet ? @\stat($path) : \stat($path);
         }
 
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', self::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', self::class);
 
         return $r;
     }
