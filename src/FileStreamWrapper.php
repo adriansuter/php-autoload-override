@@ -242,21 +242,7 @@ class FileStreamWrapper
      */
     public function stream_lock(int $operation): bool
     {
-        \stream_wrapper_restore('file');
-
-        $r = true;
-        if ($operation & LOCK_SH) {
-            $r = \flock($this->resource, $operation, $wouldblock);
-        } elseif ($operation & LOCK_EX) {
-            $r = \flock($this->resource, $operation, $wouldblock);
-        } elseif ($operation & LOCK_UN) {
-            $r = \flock($this->resource, $operation, $wouldblock);
-        }
-
-        \stream_wrapper_unregister('file');
-        \stream_wrapper_register('file', self::class);
-
-        return $r;
+        return false;
     }
 
     /**
@@ -281,14 +267,17 @@ class FileStreamWrapper
                     $r = \touch($path, $value[0], $value[1]);
                 }
                 break;
+
             case STREAM_META_OWNER_NAME:
             case STREAM_META_OWNER:
                 $r = \chown($path, $value);
                 break;
+
             case STREAM_META_GROUP_NAME:
             case STREAM_META_GROUP:
                 $r = \chgrp($path, $value);
                 break;
+
             case STREAM_META_ACCESS:
                 $r = \chmod($path, $value);
                 break;
@@ -331,7 +320,7 @@ class FileStreamWrapper
 
             $source = Override::getCodeConverter()->convert($source, $functionCallMappings);
 
-            $this->resource = \tmpfile();
+            $this->resource = \fopen('php://temp', 'w+');
             \fwrite($this->resource, $source);
             \fseek($this->resource, 0);
         } elseif (\is_resource($this->context)) {
@@ -366,7 +355,6 @@ class FileStreamWrapper
             return '';
         }
 
-
         return $r;
     }
 
@@ -397,9 +385,9 @@ class FileStreamWrapper
      * @param int $arg1
      * @param int $arg2
      *
-     * @return bool
+     * @return bool|int
      */
-    public function stream_set_option(int $option, int $arg1, ?int $arg2): bool
+    public function stream_set_option(int $option, int $arg1, ?int $arg2)
     {
         \stream_wrapper_restore('file');
 
@@ -408,16 +396,19 @@ class FileStreamWrapper
             case STREAM_OPTION_BLOCKING:
                 $r = \stream_set_blocking($this->resource, $arg1 ? true : false);
                 break;
+
             case STREAM_OPTION_READ_TIMEOUT:
                 $r = \stream_set_timeout($this->resource, $arg1, $arg2);
                 break;
+
             case STREAM_OPTION_WRITE_BUFFER:
                 switch ($arg1) {
                     case STREAM_BUFFER_NONE:
-                        $r = \stream_set_write_buffer($this->resource, 0) ? false : true;
+                        $r = \stream_set_write_buffer($this->resource, 0);
                         break;
+
                     case STREAM_BUFFER_FULL:
-                        $r = \stream_set_write_buffer($this->resource, $arg2) ? false : true;
+                        $r = \stream_set_write_buffer($this->resource, $arg2);
                         break;
                 }
                 break;
@@ -487,9 +478,9 @@ class FileStreamWrapper
      *
      * @param string $data
      *
-     * @return int
+     * @return int|false
      */
-    public function stream_write(string $data): int
+    public function stream_write(string $data)
     {
         \stream_wrapper_restore('file');
 
@@ -498,11 +489,7 @@ class FileStreamWrapper
         \stream_wrapper_unregister('file');
         \stream_wrapper_register('file', self::class);
 
-        if (\is_int($r)) {
-            return $r;
-        }
-
-        return 0;
+        return $r;
     }
 
     /**

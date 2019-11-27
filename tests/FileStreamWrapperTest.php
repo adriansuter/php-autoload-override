@@ -12,33 +12,45 @@ use PHPUnit\Framework\TestCase;
 
 final class FileStreamWrapperTest extends TestCase
 {
+    /**
+     * @var string|null
+     */
+    private $tempFilePath;
+
     protected function tearDown()
     {
         // Make sure that we restore the default file stream wrapper.
         \stream_wrapper_restore('file');
+
+        $this->deleteTempFile();
     }
 
     private function registerWrapper(): void
     {
-        stream_wrapper_unregister('file');
-        stream_wrapper_register('file', FileStreamWrapper::class);
+        \stream_wrapper_unregister('file');
+        \stream_wrapper_register('file', FileStreamWrapper::class);
     }
 
-    private function createTempFile(bool $registerWrapper = true): string
+    private function createTempFile(bool $registerWrapper = true): void
     {
-        $filePath = tempnam(sys_get_temp_dir(), 'FSW');
+        $this->tempFilePath = \tempnam(\sys_get_temp_dir(), 'FSW');
+        if (false === $this->tempFilePath) {
+            throw new RuntimeException('Temporary file could not be created');
+        }
 
         if ($registerWrapper) {
             $this->registerWrapper();
         }
-
-        return $filePath;
     }
 
-    private function deleteTempFile(string $filePath): void
+    private function deleteTempFile(): void
     {
-        \stream_wrapper_restore('file');
-        \unlink($filePath);
+        if ($this->tempFilePath === null) {
+            return;
+        }
+
+        \unlink($this->tempFilePath);
+        $this->tempFilePath = null;
     }
 
     public function testDir()
@@ -121,116 +133,118 @@ final class FileStreamWrapperTest extends TestCase
 
     public function testTouch()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $this->assertTrue(\touch($filePath));
-        $this->assertTrue(\touch($filePath, \time()));
-        $this->assertTrue(\touch($filePath, \time(), \time()));
-
-        $this->deleteTempFile($filePath);
+        $this->assertTrue(\touch($this->tempFilePath));
+        $this->assertTrue(\touch($this->tempFilePath, \time()));
+        $this->assertTrue(\touch($this->tempFilePath, \time(), \time()));
     }
 
     public function testChown()
     {
-        $filePath = $this->createTempFile(false);
+        $this->createTempFile(false);
 
-        $stat = \stat($filePath);
+        $stat = \stat($this->tempFilePath);
         $this->assertArrayHasKey('uid', $stat);
 
         $this->registerWrapper();
 
-        $this->assertIsBool(chown($filePath, $stat['uid']));
-
-        $this->deleteTempFile($filePath);
+        $this->assertIsBool(\chown($this->tempFilePath, $stat['uid']));
     }
 
     public function testChgrp()
     {
-        $filePath = $this->createTempFile(false);
+        $this->createTempFile(false);
 
-        $stat = \stat($filePath);
+        $stat = \stat($this->tempFilePath);
         $this->assertArrayHasKey('gid', $stat);
 
         $this->registerWrapper();
 
-        $this->assertIsBool(chgrp($filePath, $stat['gid']));
-
-        $this->deleteTempFile($filePath);
+        $this->assertIsBool(\chgrp($this->tempFilePath, $stat['gid']));
     }
 
     public function testChmod()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $this->assertTrue(\chmod($filePath, 0755));
-
-        $this->deleteTempFile($filePath);
+        $this->assertTrue(\chmod($this->tempFilePath, 0755));
     }
 
     public function testFlush()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $fp = \fopen($filePath, 'r');
+        $fp = \fopen($this->tempFilePath, 'r');
         $this->assertTrue(\fflush($fp));
         \fclose($fp);
-
-        $this->deleteTempFile($filePath);
     }
 
     public function testSeek()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $fp = \fopen($filePath, 'r');
+        $fp = \fopen($this->tempFilePath, 'r');
         $this->assertEquals(0, \fseek($fp, 0, SEEK_SET));
         \fclose($fp);
-
-        $this->deleteTempFile($filePath);
     }
 
     public function testTruncate()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $fp = \fopen($filePath, 'w');
+        $fp = \fopen($this->tempFilePath, 'w');
         $this->assertTrue(\ftruncate($fp, 0));
         \fclose($fp);
-
-        $this->deleteTempFile($filePath);
     }
 
     public function testWrite()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $fp = \fopen($filePath, 'w');
+        $fp = \fopen($this->tempFilePath, 'w');
         $this->assertNotFalse(\fwrite($fp, '1234'));
         \fclose($fp);
-
-        $this->deleteTempFile($filePath);
     }
 
-    public function testX()
+    public function testLock()
     {
-        $filePath = $this->createTempFile();
+        $this->createTempFile();
 
-        $fp = \fopen($filePath, 'w+');
+        $fp = \fopen($this->tempFilePath, 'w+');
+        $this->assertFalse(\stream_supports_lock($fp));
+        \fclose($fp);
+    }
 
-        $this->assertTrue(\stream_supports_lock($fp));
-        // $this->assertFalse(\stream_set_blocking($fp, true));
+    public function testSetOption()
+    {
+        $this->createTempFile();
 
-        \flock($fp, LOCK_SH);
-        \flock($fp, LOCK_EX);
+        $fp = \fopen($this->tempFilePath, 'w+');
 
-        \stream_set_timeout($fp, 5, 0);
-        \stream_set_write_buffer($fp, 2048);
+        $this->assertFalse(\stream_set_blocking($fp, true));
+        $this->assertFalse(\stream_set_timeout($fp, 5, 0));
+        $this->assertIsNumeric(\stream_set_write_buffer($fp, 2048));
 
-        \stream_set_blocking($fp, false);
-        \stream_set_write_buffer($fp, 0);
+        $this->assertFalse(\stream_set_blocking($fp, false));
+        $this->assertIsNumeric(\stream_set_write_buffer($fp, 0));
 
         \fclose($fp);
+    }
 
-        $this->deleteTempFile($filePath);
+    public function testUnlink()
+    {
+        $this->createTempFile();
+
+        $this->assertTrue(\unlink($this->tempFilePath));
+        $this->tempFilePath = null;
+    }
+
+    public function testUrlStat()
+    {
+        $this->createTempFile();
+
+        $this->assertIsArray(\stat($this->tempFilePath));
+        $this->assertIsArray(\lstat($this->tempFilePath));
     }
 }
