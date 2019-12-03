@@ -23,7 +23,7 @@ only.**
 ## Installation
 
 ```bash
-$ composer require --dev adriansuter/php-autoload-override v0.1-alpha
+$ composer require --dev adriansuter/php-autoload-override v0.1-beta
 ```
 
 
