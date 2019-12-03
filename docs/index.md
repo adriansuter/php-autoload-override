@@ -9,7 +9,7 @@ be able to mock them during testing.
 only.**
 
 
-# Prerequisites
+# Requirements
 
 - PHP 7.1 or later
 - Composer with PSR-4 (PSR-0 is not supported)
@@ -18,7 +18,7 @@ only.**
 # Installation
 
 ```bash
-$ composer require --dev adriansuter/php-autoload-override v0.1-alpha
+$ composer require --dev adriansuter/php-autoload-override v0.1-beta
 ```
 
 
@@ -66,87 +66,154 @@ $clock = new \My\App\Clock();
 echo $clock->now();
 ```
 
-The output would be `1574333284` no matter when you run this script.
+The output would be `1574333284` no matter the actual timestamp you run this script.
 
 
 # How does it work?
 
 First the PHP-Autoload-Override library collects all classes that would be affected by an override.
 Then the library registers a stream wrapper such that it can handle file loading.
-Using the standard autoload class loader from composer, the library then loads these affected classes.
+The library instructs the standard autoload class loader from composer to load these affected classes.
 The class loader would then load the classes as well as their dependencies. The PHP-Autoload-Override
 intercepts the file loading and if it detects an affected class, it loads the source code and modifies the
 fully qualified function calls. Of course at the end, the modified source code would be loaded into
 the php runtime.
 
+The library uses the [PHP Parser](https://github.com/nikic/PHP-Parser) to find the fully qualified
+function calls (global scope) and to perform the code conversion. It tries to leave the format
+of the code as untouched as possible.
 
-## Usage
-
-TODO: Add a note that namespace defined overrides would only be applied to the namespace - not sub namespaces!
+In our own tests, the coverage report did work as before (the overrides did not disturb the reporting).
 
 
-### Use in phpunit
+# Usage
 
-Let us write the `tests/bootstrap.php` file as follows:
+It is possible to override the fully qualified function calls (global scope) inside one class, or even
+for all classes of a specific namespace. Note that sub-namespaces would not be affected.
+
+To define the function calls that should be overridden for a whole namespace,
+instead of writing the fully qualified class name as key, simply write the fully
+qualified namespace name, e.g.
 ```php
-<?php declare(strict_types=1);
-
-use AdrianSuter\Autoload\Override\Override;
-use Composer\Autoload\ClassLoader;
-
-/** @var ClassLoader $classLoader */
-$classLoader = require __DIR__ . '/../vendor/autoload.php';
-
-Override::apply($classLoader, [
-    \My\App\Person::class => ['copy'],
+\AdrianSuter\Autoload\Override\Override::apply($classLoader, [
+    'My\\App\\' => [
+        'time' => function () {
+            return 1574333284;
+        }
+    ]
 ]);
-
-require __DIR__ . '/Assets/PhpFunctionOverrides.php';
 ```
 
-The default namespace in which you should define your php function overrides is
-`PHPOverride`. So inside `tests/Assets/PhpFunctionOverrides.php` we would define
+You can either define a closure as override (see above) or use the well-known namespace technique. This
+technique would allow you to define the functions inside a namespace (other than global scope)
+and the PHP-Autoload-Override would override the corresponding function calls to use that namespace.
+By default, the namespace is `PHPAutoloadOverride`.
 ```php
-<?php declare(strict_types=1);
+\AdrianSuter\Autoload\Override\Override::apply($classLoader, [
+    'My\\App\\' => ['time']
+]);
+```
+So the code converter would convert all function calls to `\time()` inside all classes
+of the namespace `My\App` into function calls `\PHPAutoloadOverride\time()`. Of course you
+would have to define those functions.
 
-namespace PHPOverride;
+You can even customize the default namespace using the third argument of 
+the `\AdrianSuter\Autoload\Override\Override::apply()` method.
 
-function copy(string $source, string $destination, $context = null): bool
+If you would like to set the namespace for one specific function call only, then
+you can do that by simply writing it as key-value pair.
+```php
+\AdrianSuter\Autoload\Override\Override::apply($classLoader, [
+    'My\\App\\' => ['time' => 'My\\Special\\Override']
+]);
+```
+
+
+# Usage with [PHPUnit](https://phpunit.de/)
+
+Say we want to unit test the following class `Probability`.
+
+```php
+namespace My\App;
+
+class Probability
 {
-    if (isset($GLOBALS['copy_return'])) {
-        return $GLOBALS['copy_return'];
+    public function pick(int $probability, string $color1, string $color2): string
+    {
+        if (\rand(1, 100) <= $probability) {
+            return $color1;
+        } else {
+            return $color2;
+        }
     }
-
-    if ($context === null) {
-        return \copy($source, $destination);
-    }
-
-    return \copy($source, $destination, $context);
 }
 ```
 
-### Custom namespace for the override functions
+The class has one method `pick` that takes a probability (between 0 and 100) and two color names as arguments.
+The method would then use the `rand` function of the global scope to generate a random number and
+if the generated number is smaller equal to the given probability, then the method would return 
+the first color, otherwise the method would return the second color.
 
-If the defined functions would all be live in another namespace, then simply add
-that namespace to the `apply()`-method.
+After installing the PHP-Autoload-Override library, we would open the bootstrap script of our test suite
+(see also [PHPUnit Configuration](https://phpunit.readthedocs.io/en/8.4/configuration.html#the-bootstrap-attribute)).
+There we will write the following code
 
-For example
 ```php
-Override::apply($classLoader, $overrides, 'My\\Library\\Override');
+// tests/bootstrap.php
+
+/** @var \Composer\Autoload\ClassLoader $classLoader */
+$classLoader = require_once __DIR__ . '/../vendor/autoload.php';
+
+\AdrianSuter\Autoload\Override\Override::apply($classLoader, [
+    \My\App\Probability::class => [
+        'rand' => function ($min, $max): int {
+            if (isset($GLOBALS['rand_return'])) {
+                return $GLOBALS['rand_return'];
+            }
+
+            return \rand($min, $max);
+        }
+    ]
+]);
 ```
 
+Now the class `Probability` would be loaded into the PHPUnit runtime such that all function calls to the global scoped 
+`rand()` function in the class `Probability` get overridden by the closure given above.
 
-## Custom namespace for one specific class only
+Our test class can now be written as follows.
 
-You can provide a specific namespace for a function override by simply writing
 ```php
-$overrides = [
-    \My\App\Person::class => ['copy' => 'My\\Tests\\SpecialOverride'],
-];
+namespace My\App\Tests;
+
+use My\App\Probability;
+use PHPUnit\Framework\TestCase;
+
+final class ProbabilityTest extends TestCase
+{
+    protected function tearDown()
+    {
+        if (isset($GLOBALS['rand_return'])) {
+            unset($GLOBALS['rand_return']);
+        }
+    }
+
+    public function testPick()
+    {
+        $p = new Probability();
+
+        $GLOBALS['rand_return'] = 35;
+
+        $this->assertEquals('blue', $p->pick(34, 'red', 'blue'));
+        $this->assertEquals('red', $p->pick(35, 'red', 'blue'));
+    }
+}
 ```
 
-The converter would automatically convert any calls to `\copy()` inside the class
-`\My\App\Person` to `\My\Tests\SpecialOverride\copy()`.
+The test case `testPick` would call the `pick` method two times. As we have overridden the `\rand` function, we can
+control its returned value to be always 35. So the first call checks, if the `else`-block
+gets executed. The second one checks, if the `if`-block gets executed. Hooray, 100% code coverage.
+
+Note that this override would only be applied during the unit tests.
 
 
 # APC User Cache
