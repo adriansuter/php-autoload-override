@@ -222,11 +222,11 @@ final class FileStreamWrapperTest extends TestCase
 
         $fp = \fopen($this->tempFilePath, 'w+');
 
-        $this->assertFalse(\stream_set_blocking($fp, true));
-        $this->assertFalse(\stream_set_timeout($fp, 5, 0));
+        $this->assertIsBool(\stream_set_blocking($fp, true));
+        $this->assertIsBool(\stream_set_timeout($fp, 5, 0));
         $this->assertIsNumeric(\stream_set_write_buffer($fp, 2048));
 
-        $this->assertFalse(\stream_set_blocking($fp, false));
+        $this->assertIsBool(\stream_set_blocking($fp, false));
         $this->assertIsNumeric(\stream_set_write_buffer($fp, 0));
 
         \fclose($fp);
