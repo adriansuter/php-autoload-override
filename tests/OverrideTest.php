@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use AdrianSuter\Autoload\Override\CodeConverter;
 use AdrianSuter\Autoload\Override\Override;
+use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,5 +30,23 @@ class OverrideTest extends TestCase
         $this->assertInstanceOf(
             CodeConverter::class, Override::getCodeConverter()
         );
+    }
+
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage APC User Cache is not supported.
+     */
+    public function testApplyApcu()
+    {
+        $classLoaderProphecy = $this->prophesize(ClassLoader::class);
+
+        $getApcuPrefixMethodProphecy = new \Prophecy\Prophecy\MethodProphecy($classLoaderProphecy, 'getApcuPrefix', []);
+        $getApcuPrefixMethodProphecy->willReturn('a');
+
+        $classLoaderProphecy->addMethodProphecy($getApcuPrefixMethodProphecy);
+
+        /** @var ClassLoader $classLoader */
+        $classLoader = $classLoaderProphecy->reveal();
+        Override::apply($classLoader, []);
     }
 }

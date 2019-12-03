@@ -312,11 +312,7 @@ class FileStreamWrapper
 
         // Replace the global function calls into local function calls.
         if (!empty($functionCallMappings)) {
-            if (\is_resource($this->context)) {
-                $source = \file_get_contents($path, $usePath, $this->context);
-            } else {
-                $source = \file_get_contents($path, $usePath);
-            }
+            $source = \file_get_contents($path, $usePath);
 
             $source = Override::getCodeConverter()->convert($source, $functionCallMappings);
 
