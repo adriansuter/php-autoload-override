@@ -21,7 +21,7 @@ class AutoloadCollection
      */
     public function addFile(string $path): void
     {
-        $path = realpath($path);
+        $path = \realpath($path);
         if ($path !== false) {
             $this->paths[$path] = true;
         }
@@ -33,27 +33,29 @@ class AutoloadCollection
     public function addDirectories(array $directories): void
     {
         foreach ($directories as $directory) {
-            if (!\file_exists($directory) || !\is_dir($directory)) {
-                continue;
+            try {
+                $this->addDirectory($directory);
+            } catch (\InvalidArgumentException $ignore) {
             }
+        }
+    }
 
-            $directory = \realpath($directory);
-            if ($directory === false) {
-                continue;
-            }
+    /**
+     * @param string $directory
+     */
+    public function addDirectory(string $directory)
+    {
+        if (
+            !\file_exists($directory) ||
+            !\is_dir($directory) ||
+            false === ($directory = \realpath($directory))
+        ) {
+            throw new \InvalidArgumentException('Directory could not be found.');
+        }
 
-//            $files = new RegexIterator(
-//                new RecursiveIteratorIterator(
-//                    new RecursiveDirectoryIterator($directory)
-//                ),
-//                '/^.+\.php$/i',
-//                RecursiveRegexIterator::GET_MATCH
-//            );
-            $files = glob($directory . '/*.php');
-
-            foreach ($files as $file) {
-                $this->addFile($file);
-            }
+        $files = \glob($directory . '/*.php');
+        foreach ($files as $file) {
+            $this->addFile($file);
         }
     }
 

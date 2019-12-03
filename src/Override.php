@@ -86,20 +86,20 @@ class Override
 
                 $handled = [];
                 $popped = [];
-                $parts = \explode('\\', trim($fqn, '\\'));
+                $parts = \explode('\\', \trim($fqn, '\\'));
                 while (!empty($parts)) {
                     $glued = \implode('\\', $parts) . '\\';
 
                     if (isset($prefixesPsr4[$glued])) {
-                        $subDir = implode('/', $popped);
+                        $subDir = \implode('/', $popped);
 
                         foreach ($prefixesPsr4[$glued] as $directory) {
-                            $dir = realpath($directory . '/' . $subDir);
+                            $dir = \realpath($directory . '/' . $subDir);
                             if ($dir === false) {
                                 continue;
                             }
 
-                            if (is_dir($dir) && !isset($handled[$dir])) {
+                            if (\is_dir($dir) && !isset($handled[$dir])) {
                                 $handled[$dir] = true;
                                 //echo $dir . PHP_EOL;
                                 self::addNamespaceData([$dir], $fqnFunctionCallMappings);
@@ -112,14 +112,14 @@ class Override
                 }
 
                 foreach ($classLoader->getClassMap() as $classMapFqn => $classMapPath) {
-                    if (substr($classMapFqn, 0, strlen($fqn)) === $fqn) {
-                        $p = realpath($classMapPath);
+                    if (\substr($classMapFqn, 0, \strlen($fqn)) === $fqn) {
+                        $p = \realpath($classMapPath);
                         if ($p === false) {
                             continue;
                         }
 
                         if (isset(self::$fileFunctionCallMappings[$p])) {
-                            self::$fileFunctionCallMappings[$p] = array_merge(
+                            self::$fileFunctionCallMappings[$p] = \array_merge(
                                 $fqnFunctionCallMappings,
                                 self::$fileFunctionCallMappings[$p]
                             );
@@ -177,10 +177,10 @@ class Override
             if (\is_numeric($key)) {
                 $fcMappings['\\' . $val] = $namespace . '\\' . $val;
             } else {
-                if (is_string($val)) {
+                if (\is_string($val)) {
                     $fcMappings['\\' . $key] = $val . '\\' . $key;
                 } elseif ($val instanceof Closure) {
-                    $name = $key . '_' . spl_object_hash($val);
+                    $name = $key . '_' . \spl_object_hash($val);
                     ClosureHandler::getInstance()->addClosure($name, $val);
 
                     $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
@@ -218,7 +218,7 @@ class Override
     public static function getFunctionMappings(string $filePath): array
     {
         $filePath = \realpath($filePath);
-        $dirPath = dirname($filePath);
+        $dirPath = \dirname($filePath);
 
         $mappings = [];
         if (isset(self::$dirFunctionCallMappings[$dirPath])) {
