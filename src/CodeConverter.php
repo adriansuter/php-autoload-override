@@ -75,11 +75,7 @@ class CodeConverter
         ?Standard $printer = null,
         ?NodeFinder $nodeFinder = null
     ) {
-        $this->lexer = $lexer ?? new Emulative(
-                [
-                    'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
-                ]
-            );
+        $this->lexer = $lexer ?? $this->defaultLexer();
 
         $this->parser = $parser ?? new Php7($this->lexer);
 
@@ -93,6 +89,18 @@ class CodeConverter
         $this->printer = $printer ?? new Standard();
 
         $this->nodeFinder = $nodeFinder ?? new NodeFinder();
+    }
+
+    /**
+     * @return Lexer
+     */
+    private function defaultLexer(): Lexer
+    {
+        return new Emulative(
+            [
+                'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
+            ]
+        );
     }
 
     /**
