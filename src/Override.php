@@ -95,7 +95,7 @@ class Override
             $classLoader->loadClass(FileStreamWrapper::class);
         }
 
-        // Reset the function call mappings.
+        // Reset the function call maps.
         self::$fileFunctionCallMap = [];
         self::$dirFunctionCallMap = [];
 

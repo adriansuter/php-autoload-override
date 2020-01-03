@@ -99,11 +99,11 @@ class CodeConverter
      * Convert the given source code.
      *
      * @param string $code The source code.
-     * @param array $functionCallMappings The function call mappings.
+     * @param array $functionCallMap The function call map.
      *
      * @return string
      */
-    public function convert(string $code, array $functionCallMappings): string
+    public function convert(string $code, array $functionCallMap): string
     {
         $oldStmts = $this->parser->parse($code);
         $oldTokens = $this->lexer->getTokens();
@@ -122,9 +122,9 @@ class CodeConverter
             $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
 
             $resolvedNameCode = $resolvedName->toCodeString();
-            if (isset($functionCallMappings[$resolvedNameCode])) {
+            if (isset($functionCallMap[$resolvedNameCode])) {
                 $k = uniqid(md5($resolvedNameCode), true);
-                $overridePlaceholders[$k] = $functionCallMappings[$resolvedNameCode];
+                $overridePlaceholders[$k] = $functionCallMap[$resolvedNameCode];
 
                 $funcCall->name = new FullyQualified($k);
             }
