@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -42,6 +43,7 @@ use function stream_wrapper_unregister;
 use function touch;
 use function unlink;
 
+// phpcs:disable PSR1.Methods.CamelCapsMethodName
 class FileStreamWrapper
 {
     /**

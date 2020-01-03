@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -6,6 +7,8 @@
  */
 
 declare(strict_types=1);
+
+namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\CodeConverter;
 use AdrianSuter\Autoload\Override\Override;
@@ -29,7 +32,8 @@ class OverrideTest extends TestCase
     public function testGetFQFCConverter()
     {
         $this->assertInstanceOf(
-            CodeConverter::class, Override::getCodeConverter()
+            CodeConverter::class,
+            Override::getCodeConverter()
         );
     }
 

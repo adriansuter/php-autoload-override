@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -7,8 +8,11 @@
 
 declare(strict_types=1);
 
+namespace AdrianSuter\Autoload\Override\Tests;
+
 use AdrianSuter\Autoload\Override\ClosureHandler;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class ClosureHandlerTest extends TestCase
 {

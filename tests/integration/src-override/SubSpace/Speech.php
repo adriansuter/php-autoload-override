@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *

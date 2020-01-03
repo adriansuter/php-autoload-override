@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -6,6 +7,8 @@
  */
 
 declare(strict_types=1);
+
+namespace AdrianSuter\Autoload\Override\Tests;
 
 class IntegrationCustomNamespaceTest extends AbstractIntegrationTest
 {
@@ -26,8 +29,7 @@ class IntegrationCustomNamespaceTest extends AbstractIntegrationTest
     public function testHash()
     {
         $hash = new \My\Integration\TestCustomNamespaceOverride\Hash();
-
-        // Calls \md5() > Overridden by FQCN-declaration.
+// Calls \md5() > Overridden by FQCN-declaration.
         $GLOBALS['md5_return'] = '---';
         $this->assertEquals('---', $hash->hash('1'));
     }
