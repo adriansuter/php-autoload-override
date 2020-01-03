@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -6,6 +7,8 @@
  */
 
 declare(strict_types=1);
+
+namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\Override;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +27,6 @@ abstract class AbstractIntegrationTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-
         if (!$this->overrideApplied) {
             $this->overrideApplied = true;
             Override::apply(self::$classLoader, $this->getOverrideDeclarations());

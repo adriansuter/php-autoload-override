@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -75,10 +76,10 @@ class CodeConverter
         ?NodeFinder $nodeFinder = null
     ) {
         $this->lexer = $lexer ?? new Emulative(
-                [
+            [
                     'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
                 ]
-            );
+        );
 
         $this->parser = $parser ?? new Php7($this->lexer);
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -9,6 +10,7 @@ declare(strict_types=1);
 
 namespace PHPCustomAutoloadOverride;
 
+/** @noinspection PhpUnused */
 function md5(string $str, bool $raw_output = false): string
 {
     if (isset($GLOBALS['md5_return'])) {

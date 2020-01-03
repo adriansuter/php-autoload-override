@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -7,8 +8,12 @@
 
 declare(strict_types=1);
 
+namespace AdrianSuter\Autoload\Override\Tests;
+
 use AdrianSuter\Autoload\Override\FileStreamWrapper;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
+use RuntimeException;
 
 final class FileStreamWrapperTest extends TestCase
 {

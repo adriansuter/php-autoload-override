@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Autoload Override (https://github.com/adriansuter/php-autoload-override)
  *
@@ -8,6 +9,8 @@
 declare(strict_types=1);
 
 namespace My\Integration\TestClassMapOverride;
+
+use function cos;
 
 /**
  * Overrides declared for
@@ -19,6 +22,6 @@ class Calculator
 {
     public function cos(float $arg): float
     {
-        return \cos($arg);
+        return cos($arg);
     }
 }
