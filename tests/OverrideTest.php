@@ -11,6 +11,7 @@ use AdrianSuter\Autoload\Override\CodeConverter;
 use AdrianSuter\Autoload\Override\Override;
 use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Prophecy\MethodProphecy;
 
 /**
  * @runTestsInSeparateProcesses
@@ -40,7 +41,7 @@ class OverrideTest extends TestCase
     {
         $classLoaderProphecy = $this->prophesize(ClassLoader::class);
 
-        $getApcuPrefixMethodProphecy = new \Prophecy\Prophecy\MethodProphecy($classLoaderProphecy, 'getApcuPrefix', []);
+        $getApcuPrefixMethodProphecy = new MethodProphecy($classLoaderProphecy, 'getApcuPrefix', []);
         $getApcuPrefixMethodProphecy->willReturn('a');
 
         $classLoaderProphecy->addMethodProphecy($getApcuPrefixMethodProphecy);

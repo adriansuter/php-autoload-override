@@ -12,12 +12,11 @@ use PHPUnit\Framework\TestCase;
 
 class AutoloadCollectionTest extends TestCase
 {
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testAddDirectories()
+    public function testAddDirectory()
     {
         $autoloadCollection = new AutoloadCollection();
         $autoloadCollection->addDirectory(__DIR__ . '/not-existent');
+
+        $this->assertTrue(true);
     }
 }
