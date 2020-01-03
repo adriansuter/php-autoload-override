@@ -75,11 +75,7 @@ class CodeConverter
         ?Standard $printer = null,
         ?NodeFinder $nodeFinder = null
     ) {
-        $this->lexer = $lexer ?? new Emulative(
-            [
-                    'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
-                ]
-        );
+        $this->lexer = $lexer ?? $this->defaultLexer();
 
         $this->parser = $parser ?? new Php7($this->lexer);
 
@@ -96,14 +92,26 @@ class CodeConverter
     }
 
     /**
+     * @return Lexer
+     */
+    private function defaultLexer(): Lexer
+    {
+        return new Emulative(
+            [
+                'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
+            ]
+        );
+    }
+
+    /**
      * Convert the given source code.
      *
      * @param string $code The source code.
-     * @param array $functionCallMappings The function call mappings.
+     * @param array $functionCallMap The function call map.
      *
      * @return string
      */
-    public function convert(string $code, array $functionCallMappings): string
+    public function convert(string $code, array $functionCallMap): string
     {
         $oldStmts = $this->parser->parse($code);
         $oldTokens = $this->lexer->getTokens();
@@ -111,10 +119,13 @@ class CodeConverter
         $overridePlaceholders = [];
 
         $newStmts = $this->traverser->traverse($oldStmts);
+
+        // Find function calls.
         $funcCalls = $this->nodeFinder->findInstanceOf($newStmts, FuncCall::class);
         foreach ($funcCalls as $funcCall) {
             /** @var FuncCall $funcCall */
             if (!$funcCall->name->hasAttribute(self::ATTR_RESOLVED_NAME)) {
+                // This function call has no resolved fully qualified name.
                 continue;
             }
 
@@ -122,19 +133,29 @@ class CodeConverter
             $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
 
             $resolvedNameCode = $resolvedName->toCodeString();
-            if (isset($functionCallMappings[$resolvedNameCode])) {
-                $k = uniqid(md5($resolvedNameCode), true);
-                $overridePlaceholders[$k] = $functionCallMappings[$resolvedNameCode];
+            if (isset($functionCallMap[$resolvedNameCode])) {
+                // There is a function call map > Create a unique key.
+                $key = uniqid(md5($resolvedNameCode), true);
 
-                $funcCall->name = new FullyQualified($k);
+                // Put the key into the overridePlaceholders array as at the end we need to
+                // replace those keys with the corresponding target function call.
+                $overridePlaceholders[$key] = $functionCallMap[$resolvedNameCode];
+
+                // Replace the name to be the fully qualified name, i.e. the given unique key
+                // (we will replace that at the end).
+                $funcCall->name = new FullyQualified($key);
             }
         }
 
+        // Print the source code.
         $code = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
+
+        // Return the source code if there are no override placeholders.
         if (empty($overridePlaceholders)) {
             return $code;
         }
 
+        // Replace all override placeholders by their target function call.
         return str_replace(array_keys($overridePlaceholders), array_values($overridePlaceholders), $code);
     }
 }
