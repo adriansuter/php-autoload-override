@@ -356,13 +356,12 @@ class FileStreamWrapper
 
         // TODO Implement error reporting as well as opened_path.
 
-        $functionCallMappings = Override::getFunctionMappings($path);
+        $functionCallMap = Override::getFunctionCallMap($path);
 
         // Replace the global function calls into local function calls.
-        if (!empty($functionCallMappings)) {
+        if (!empty($functionCallMap)) {
             $source = file_get_contents($path, $usePath);
-
-            $source = Override::getCodeConverter()->convert($source, $functionCallMappings);
+            $source = Override::convert($source, $functionCallMap);
 
             $this->resource = fopen('php://temp', 'w+');
             fwrite($this->resource, $source);

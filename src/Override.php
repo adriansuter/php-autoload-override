@@ -35,17 +35,20 @@ use function strlen;
 use function substr;
 use function trim;
 
+/**
+ * @package AdrianSuter\Autoload\Override
+ */
 class Override
 {
     /**
      * @var array
      */
-    private static $fileFunctionCallMappings;
+    private static $fileFunctionCallMap;
 
     /**
      * @var array
      */
-    private static $dirFunctionCallMappings;
+    private static $dirFunctionCallMap;
 
     /**
      * @var CodeConverter|null
@@ -64,7 +67,7 @@ class Override
     /**
      * @return CodeConverter
      */
-    public static function getCodeConverter(): CodeConverter
+    private static function getCodeConverter(): CodeConverter
     {
         if (self::$converter === null) {
             self::setCodeConverter(new CodeConverter());
@@ -75,13 +78,13 @@ class Override
 
     /**
      * @param ClassLoader $classLoader
-     * @param string[]|Closure[] $functionCallMappings
-     * @param string $namespace
+     * @param string[]|Closure[] $functionCallMap
+     * @param string $overrideNamespace
      */
     public static function apply(
         ClassLoader $classLoader,
-        array $functionCallMappings,
-        string $namespace = 'PHPAutoloadOverride'
+        array $functionCallMap,
+        string $overrideNamespace = 'PHPAutoloadOverride'
     ) {
         if ($classLoader->getApcuPrefix() !== null) {
             throw new RuntimeException('APC User Cache is not supported.');
@@ -93,14 +96,15 @@ class Override
         }
 
         // Reset the function call mappings.
-        self::$fileFunctionCallMappings = [];
-        self::$dirFunctionCallMappings = [];
+        self::$fileFunctionCallMap = [];
+        self::$dirFunctionCallMap = [];
 
         // Initialize the collection of files we would force to load (include).
         $autoloadCollection = new AutoloadCollection();
 
-        foreach ($functionCallMappings as $fqn => $mappings) {
-            $fqnFunctionCallMappings = self::buildMappings($mappings, $namespace);
+        foreach ($functionCallMap as $fqn => $map) {
+            // Build the fqn function call map.
+            $fqnFunctionCallMap = self::buildFunctionCallMap($map, $overrideNamespace);
 
             if (substr($fqn, -1, 1) === '\\') {
                 // The given fqn is a namespace.
@@ -124,8 +128,7 @@ class Override
                             if (is_dir($dir) && !isset($handled[$dir])) {
                                 $handled[$dir] = true;
 
-                                self::addNamespaceData([$dir], $fqnFunctionCallMappings);
-                                $autoloadCollection->addDirectory($dir);
+                                self::addDirectoryFunctionCallMap($autoloadCollection, $dir, $fqnFunctionCallMap);
                             }
                         }
                     }
@@ -140,13 +143,13 @@ class Override
                             continue;
                         }
 
-                        if (isset(self::$fileFunctionCallMappings[$p])) {
-                            self::$fileFunctionCallMappings[$p] = array_merge(
-                                $fqnFunctionCallMappings,
-                                self::$fileFunctionCallMappings[$p]
+                        if (isset(self::$fileFunctionCallMap[$p])) {
+                            self::$fileFunctionCallMap[$p] = array_merge(
+                                $fqnFunctionCallMap,
+                                self::$fileFunctionCallMap[$p]
                             );
                         } else {
-                            self::$fileFunctionCallMappings[$p] = $fqnFunctionCallMappings;
+                            self::$fileFunctionCallMap[$p] = $fqnFunctionCallMap;
                         }
                         $autoloadCollection->addFile($p);
                     }
@@ -170,16 +173,16 @@ class Override
                 continue;
             }
 
-            self::$fileFunctionCallMappings[$path] = $fqnFunctionCallMappings;
+            self::$fileFunctionCallMap[$path] = $fqnFunctionCallMap;
             $autoloadCollection->addFile($path);
         }
 
         // Load the classes that are affected by the FQFC-override converter.
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', FileStreamWrapper::class);
-        foreach ($autoloadCollection->getFilePaths() as $file) {
+        foreach ($autoloadCollection->getFilePaths() as $filePath) {
             /** @noinspection PhpIncludeInspection */
-            include_once $file;
+            include_once $filePath;
         }
 
         stream_wrapper_restore('file');
@@ -187,47 +190,52 @@ class Override
     }
 
     /**
-     * @param string[]|Closure[] $mappings
+     * Build a mapping between root namespaced function calls and their overridden fully qualified name.
+     *
+     * @param string[]|Closure[] $map
      * @param string $namespace
      *
-     * @return array
+     * @return string[]
      */
-    private static function buildMappings(array $mappings, string $namespace): array
+    private static function buildFunctionCallMap(array $map, string $namespace): array
     {
-        $fcMappings = [];
-        foreach ($mappings as $key => $val) {
+        $functionCallMap = [];
+        foreach ($map as $key => $val) {
             if (is_numeric($key)) {
-                $fcMappings['\\' . $val] = $namespace . '\\' . $val;
+                $functionCallMap['\\' . $val] = $namespace . '\\' . $val;
             } elseif (is_string($val)) {
-                $fcMappings['\\' . $key] = $val . '\\' . $key;
+                $functionCallMap['\\' . $key] = $val . '\\' . $key;
             } elseif ($val instanceof Closure) {
                 $name = $key . '_' . spl_object_hash($val);
                 ClosureHandler::getInstance()->addClosure($name, $val);
 
-                $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
+                $functionCallMap['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
             }
         }
 
-        return $fcMappings;
+        return $functionCallMap;
     }
 
-    private static function addNamespaceData(array $directories, array $functionMappings): void
-    {
-        foreach ($directories as $dir) {
-            if (!file_exists($dir)) {
-                continue;
-            }
-
-            $dir = realpath($dir);
-            if (isset(self::$dirFunctionCallMappings[$dir])) {
-                self::$dirFunctionCallMappings[$dir] = array_merge(
-                    self::$dirFunctionCallMappings[$dir],
-                    $functionMappings
-                );
-            } else {
-                self::$dirFunctionCallMappings[$dir] = $functionMappings;
-            }
+    private static function addDirectoryFunctionCallMap(
+        AutoloadCollection $autoloadCollection,
+        string $directory,
+        array $fqnFunctionCallMap
+    ): void {
+        $directory = realpath($directory);
+        if ($directory === false) {
+            return;
         }
+
+        if (isset(self::$dirFunctionCallMap[$directory])) {
+            self::$dirFunctionCallMap[$directory] = array_merge(
+                self::$dirFunctionCallMap[$directory],
+                $fqnFunctionCallMap
+            );
+        } else {
+            self::$dirFunctionCallMap[$directory] = $fqnFunctionCallMap;
+        }
+
+        $autoloadCollection->addDirectory($directory);
     }
 
     /**
@@ -235,20 +243,37 @@ class Override
      *
      * @return string[]
      */
-    public static function getFunctionMappings(string $filePath): array
+    public static function getFunctionCallMap(string $filePath): array
     {
         $filePath = realpath($filePath);
+        if ($filePath === false) {
+            return [];
+        }
+
         $dirPath = dirname($filePath);
 
-        $mappings = [];
-        if (isset(self::$dirFunctionCallMappings[$dirPath])) {
-            $mappings = array_merge($mappings, self::$dirFunctionCallMappings[$dirPath]);
+        $functionCallMap = [];
+        if (isset(self::$dirFunctionCallMap[$dirPath])) {
+            $functionCallMap = array_merge($functionCallMap, self::$dirFunctionCallMap[$dirPath]);
         }
 
-        if (isset(self::$fileFunctionCallMappings[$filePath])) {
-            $mappings = array_merge($mappings, self::$fileFunctionCallMappings[$filePath]);
+        if (isset(self::$fileFunctionCallMap[$filePath])) {
+            $functionCallMap = array_merge($functionCallMap, self::$fileFunctionCallMap[$filePath]);
         }
 
-        return $mappings;
+        return $functionCallMap;
+    }
+
+    /**
+     * Convert the source code using the fqn function call map.
+     *
+     * @param string $source
+     * @param array $functionCallMap
+     *
+     * @return string
+     */
+    public static function convert(string $source, array $functionCallMap): string
+    {
+        return self::getCodeConverter()->convert($source, $functionCallMap);
     }
 }
