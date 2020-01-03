@@ -21,40 +21,51 @@ use PhpParser\Parser;
 use PhpParser\Parser\Php7;
 use PhpParser\PrettyPrinter\Standard;
 
+use function array_keys;
+use function array_values;
+use function md5;
+use function str_replace;
+use function uniqid;
+
+/**
+ * @package AdrianSuter\Autoload\Override
+ */
 class CodeConverter
 {
+    private const ATTR_RESOLVED_NAME = 'resolvedName';
+
     /**
-     * @var Parser
+     * @var Parser The PHP Parser.
      */
     protected $parser;
 
     /**
-     * @var Lexer
+     * @var Lexer The PHP Lexer.
      */
     protected $lexer;
 
     /**
-     * @var NodeTraverser
+     * @var NodeTraverser The PHP Node Traverser.
      */
     protected $traverser;
 
     /**
-     * @var Standard
+     * @var Standard The PHP Printer.
      */
     protected $printer;
 
     /**
-     * @var NodeFinder
+     * @var NodeFinder The PHP Node Finder.
      */
     protected $nodeFinder;
 
     /**
-     * @param Lexer|null         $lexer      The lexer.
-     * @param Parser|null        $parser     The parser.
-     * @param NodeTraverser|null $traverser  The traverser - make sure that the traverser has a CloningVisitor and a
-     *                                       NameResolver visitor.
-     * @param Standard|null      $printer    The printer.
-     * @param NodeFinder|null    $nodeFinder The node finder.
+     * @param Lexer|null $lexer The PHP Lexer.
+     * @param Parser|null $parser The PHP Parser.
+     * @param NodeTraverser|null $traverser The PHP Node Traverser - make sure that the traverser has a CloningVisitor
+     *                                      and a NameResolver visitor.
+     * @param Standard|null $printer The PHP Printer.
+     * @param NodeFinder|null $nodeFinder The PHP Node Finder.
      */
     public function __construct(
         ?Lexer $lexer = null,
@@ -63,9 +74,11 @@ class CodeConverter
         ?Standard $printer = null,
         ?NodeFinder $nodeFinder = null
     ) {
-        $this->lexer = $lexer ?? new Emulative([
-                'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
-            ]);
+        $this->lexer = $lexer ?? new Emulative(
+                [
+                    'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
+                ]
+            );
 
         $this->parser = $parser ?? new Php7($this->lexer);
 
@@ -82,10 +95,10 @@ class CodeConverter
     }
 
     /**
-     * Convert the given code.
+     * Convert the given source code.
      *
-     * @param string $code
-     * @param array  $functionCallMappings
+     * @param string $code The source code.
+     * @param array $functionCallMappings The function call mappings.
      *
      * @return string
      */
@@ -100,21 +113,26 @@ class CodeConverter
         $funcCalls = $this->nodeFinder->findInstanceOf($newStmts, FuncCall::class);
         foreach ($funcCalls as $funcCall) {
             /** @var FuncCall $funcCall */
-            if ($funcCall->name->hasAttribute('resolvedName')) {
-                /** @var FullyQualified $resolvedName */
-                $resolvedName = $funcCall->name->getAttribute('resolvedName');
-                $resolvedNameCode = $resolvedName->toCodeString();
+            if (!$funcCall->name->hasAttribute(self::ATTR_RESOLVED_NAME)) {
+                continue;
+            }
 
-                if (isset($functionCallMappings[$resolvedNameCode])) {
-                    $k = uniqid(md5($resolvedNameCode), true);
-                    $overridePlaceholders[$k] = $functionCallMappings[$resolvedNameCode];
+            /** @var FullyQualified $resolvedName */
+            $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
 
-                    $funcCall->name = new FullyQualified($k);
-                }
+            $resolvedNameCode = $resolvedName->toCodeString();
+            if (isset($functionCallMappings[$resolvedNameCode])) {
+                $k = uniqid(md5($resolvedNameCode), true);
+                $overridePlaceholders[$k] = $functionCallMappings[$resolvedNameCode];
+
+                $funcCall->name = new FullyQualified($k);
             }
         }
 
         $code = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
+        if (empty($overridePlaceholders)) {
+            return $code;
+        }
 
         return str_replace(array_keys($overridePlaceholders), array_values($overridePlaceholders), $code);
     }

@@ -13,6 +13,27 @@ use Closure;
 use Composer\Autoload\ClassLoader;
 use RuntimeException;
 
+use function array_merge;
+use function array_pop;
+use function array_unshift;
+use function class_exists;
+use function clearstatcache;
+use function dirname;
+use function explode;
+use function file_exists;
+use function implode;
+use function is_dir;
+use function is_numeric;
+use function is_string;
+use function realpath;
+use function spl_object_hash;
+use function stream_wrapper_register;
+use function stream_wrapper_restore;
+use function stream_wrapper_unregister;
+use function strlen;
+use function substr;
+use function trim;
+
 class Override
 {
     /**
@@ -52,9 +73,9 @@ class Override
     }
 
     /**
-     * @param ClassLoader        $classLoader
+     * @param ClassLoader $classLoader
      * @param string[]|Closure[] $functionCallMappings
-     * @param string             $namespace
+     * @param string $namespace
      */
     public static function apply(
         ClassLoader $classLoader,
@@ -66,7 +87,7 @@ class Override
         }
 
         // Make sure that the stream wrapper class is loaded.
-        if (!\class_exists(FileStreamWrapper::class)) {
+        if (!class_exists(FileStreamWrapper::class)) {
             $classLoader->loadClass(FileStreamWrapper::class);
         }
 
@@ -80,46 +101,46 @@ class Override
         foreach ($functionCallMappings as $fqn => $mappings) {
             $fqnFunctionCallMappings = self::buildMappings($mappings, $namespace);
 
-            if (\substr($fqn, -1, 1) === '\\') {
+            if (substr($fqn, -1, 1) === '\\') {
                 // The given fqn is a namespace.
                 $prefixesPsr4 = $classLoader->getPrefixesPsr4();
 
                 $handled = [];
                 $popped = [];
-                $parts = \explode('\\', \trim($fqn, '\\'));
+                $parts = explode('\\', trim($fqn, '\\'));
                 while (!empty($parts)) {
-                    $glued = \implode('\\', $parts) . '\\';
+                    $glued = implode('\\', $parts) . '\\';
 
                     if (isset($prefixesPsr4[$glued])) {
-                        $subDir = \implode('/', $popped);
+                        $subDir = implode('/', $popped);
 
                         foreach ($prefixesPsr4[$glued] as $directory) {
-                            $dir = \realpath($directory . '/' . $subDir);
+                            $dir = realpath($directory . '/' . $subDir);
                             if ($dir === false) {
                                 continue;
                             }
 
-                            if (\is_dir($dir) && !isset($handled[$dir])) {
+                            if (is_dir($dir) && !isset($handled[$dir])) {
                                 $handled[$dir] = true;
-                                //echo $dir . PHP_EOL;
+
                                 self::addNamespaceData([$dir], $fqnFunctionCallMappings);
-                                $autoloadCollection->addDirectories([$dir]);
+                                $autoloadCollection->addDirectory($dir);
                             }
                         }
                     }
 
-                    \array_unshift($popped, \array_pop($parts));
+                    array_unshift($popped, array_pop($parts));
                 }
 
                 foreach ($classLoader->getClassMap() as $classMapFqn => $classMapPath) {
-                    if (\substr($classMapFqn, 0, \strlen($fqn)) === $fqn) {
-                        $p = \realpath($classMapPath);
+                    if (substr($classMapFqn, 0, strlen($fqn)) === $fqn) {
+                        $p = realpath($classMapPath);
                         if ($p === false) {
                             continue;
                         }
 
                         if (isset(self::$fileFunctionCallMappings[$p])) {
-                            self::$fileFunctionCallMappings[$p] = \array_merge(
+                            self::$fileFunctionCallMappings[$p] = array_merge(
                                 $fqnFunctionCallMappings,
                                 self::$fileFunctionCallMappings[$p]
                             );
@@ -130,9 +151,9 @@ class Override
                     }
                 }
 
-                foreach ($classLoader->getFallbackDirsPsr4() as $fallbackDirPsr4) {
-                    // TODO: Handle this case.
-                }
+                //foreach ($classLoader->getFallbackDirsPsr4() as $fallbackDirPsr4) {
+                // TODO: Handle this case.
+                //}
                 continue;
             }
 
@@ -142,7 +163,7 @@ class Override
                 continue;
             }
 
-            $path = \realpath($filePath);
+            $path = realpath($filePath);
             if ($path === false) {
                 // The file could not be found.
                 continue;
@@ -153,20 +174,20 @@ class Override
         }
 
         // Load the classes that are affected by the FQFC-override converter.
-        \stream_wrapper_unregister('file');
-        \stream_wrapper_register('file', FileStreamWrapper::class);
+        stream_wrapper_unregister('file');
+        stream_wrapper_register('file', FileStreamWrapper::class);
         foreach ($autoloadCollection->getFilePaths() as $file) {
             /** @noinspection PhpIncludeInspection */
             include_once $file;
         }
 
-        \stream_wrapper_restore('file');
-        \clearstatcache();
+        stream_wrapper_restore('file');
+        clearstatcache();
     }
 
     /**
      * @param string[]|Closure[] $mappings
-     * @param string             $namespace
+     * @param string $namespace
      *
      * @return array
      */
@@ -174,17 +195,15 @@ class Override
     {
         $fcMappings = [];
         foreach ($mappings as $key => $val) {
-            if (\is_numeric($key)) {
+            if (is_numeric($key)) {
                 $fcMappings['\\' . $val] = $namespace . '\\' . $val;
-            } else {
-                if (\is_string($val)) {
-                    $fcMappings['\\' . $key] = $val . '\\' . $key;
-                } elseif ($val instanceof Closure) {
-                    $name = $key . '_' . \spl_object_hash($val);
-                    ClosureHandler::getInstance()->addClosure($name, $val);
+            } elseif (is_string($val)) {
+                $fcMappings['\\' . $key] = $val . '\\' . $key;
+            } elseif ($val instanceof Closure) {
+                $name = $key . '_' . spl_object_hash($val);
+                ClosureHandler::getInstance()->addClosure($name, $val);
 
-                    $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
-                }
+                $fcMappings['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
             }
         }
 
@@ -194,13 +213,13 @@ class Override
     private static function addNamespaceData(array $directories, array $functionMappings): void
     {
         foreach ($directories as $dir) {
-            if (!\file_exists($dir)) {
+            if (!file_exists($dir)) {
                 continue;
             }
 
-            $dir = \realpath($dir);
+            $dir = realpath($dir);
             if (isset(self::$dirFunctionCallMappings[$dir])) {
-                self::$dirFunctionCallMappings[$dir] = \array_merge(
+                self::$dirFunctionCallMappings[$dir] = array_merge(
                     self::$dirFunctionCallMappings[$dir],
                     $functionMappings
                 );
@@ -217,16 +236,16 @@ class Override
      */
     public static function getFunctionMappings(string $filePath): array
     {
-        $filePath = \realpath($filePath);
-        $dirPath = \dirname($filePath);
+        $filePath = realpath($filePath);
+        $dirPath = dirname($filePath);
 
         $mappings = [];
         if (isset(self::$dirFunctionCallMappings[$dirPath])) {
-            $mappings = \array_merge($mappings, self::$dirFunctionCallMappings[$dirPath]);
+            $mappings = array_merge($mappings, self::$dirFunctionCallMappings[$dirPath]);
         }
 
         if (isset(self::$fileFunctionCallMappings[$filePath])) {
-            $mappings = \array_merge($mappings, self::$fileFunctionCallMappings[$filePath]);
+            $mappings = array_merge($mappings, self::$fileFunctionCallMappings[$filePath]);
         }
 
         return $mappings;

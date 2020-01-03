@@ -12,20 +12,30 @@ namespace AdrianSuter\Autoload\Override;
 use Closure;
 use RuntimeException;
 
+use function call_user_func_array;
+use function sprintf;
+
+/**
+ * The ClosureHandler is a Singleton class to handle overrides defined as closures.
+ *
+ * @package AdrianSuter\Autoload\Override
+ */
 class ClosureHandler
 {
     /**
-     * @var self
+     * @var self The singleton instance.
      */
     private static $instance;
 
     /**
-     * @var Closure[]
+     * @var Closure[] A list of closures.
      */
     private $closures = [];
 
     /**
-     * @return self
+     * Get the singleton instance.
+     *
+     * @return self The ClosureHandler.
      */
     public static function getInstance(): self
     {
@@ -37,28 +47,35 @@ class ClosureHandler
     }
 
     /**
-     * @param string  $name
-     * @param Closure $closure
+     * Add a closure.
+     *
+     * This method would overwrite any previously defined closure with the same name.
+     *
+     * @param string $name The closure name.
+     * @param Closure $closure The closure.
      */
-    function addClosure(string $name, Closure $closure): void
+    public function addClosure(string $name, Closure $closure): void
     {
         $this->closures[$name] = $closure;
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * Magic call.
+     *
+     * @param string $name The method name.
+     * @param array $arguments The method arguments.
      *
      * @return mixed
      */
     public function __call(string $name, array $arguments)
     {
         if (isset($this->closures[$name])) {
-            return \call_user_func_array(
-                $this->closures[$name], $arguments
+            return call_user_func_array(
+                $this->closures[$name],
+                $arguments
             );
         }
 
-        throw new RuntimeException(\sprintf('Closure Override "%s" could not be found.', $name));
+        throw new RuntimeException(sprintf('Closure Override "%s" could not be found.', $name));
     }
 }

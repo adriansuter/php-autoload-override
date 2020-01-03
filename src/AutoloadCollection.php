@@ -9,61 +9,67 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
+use function array_keys;
+use function file_exists;
+use function glob;
+use function is_dir;
+use function realpath;
+
+/**
+ * @package AdrianSuter\Autoload\Override
+ */
 class AutoloadCollection
 {
     /**
-     * @var bool[]
+     * @var bool[] The keys of this associative array are the file paths.
      */
-    private $paths = [];
+    private $filePaths = [];
 
     /**
-     * @param string $path
+     * Add a file to the autoload collection.
+     *
+     * This method would ignore the file if it could not be found.
+     *
+     * @param string $path The path to the file.
      */
     public function addFile(string $path): void
     {
-        $path = \realpath($path);
-        if ($path !== false) {
-            $this->paths[$path] = true;
+        $realpath = realpath($path);
+        if ($realpath !== false) {
+            $this->filePaths[$realpath] = true;
         }
     }
 
     /**
-     * @param string[] $directories
+     * Add a directory, i.e. the php files inside a directory.
+     *
+     * This method would ignore the directory if it could not be found.
+     *
+     * @param string $directory The directory.
      */
-    public function addDirectories(array $directories): void
-    {
-        foreach ($directories as $directory) {
-            try {
-                $this->addDirectory($directory);
-            } catch (\InvalidArgumentException $ignore) {
-            }
-        }
-    }
-
-    /**
-     * @param string $directory
-     */
-    public function addDirectory(string $directory)
+    public function addDirectory(string $directory): void
     {
         if (
-            !\file_exists($directory) ||
-            !\is_dir($directory) ||
-            false === ($directory = \realpath($directory))
+            !file_exists($directory) ||
+            !is_dir($directory) ||
+            false === ($directory = realpath($directory))
         ) {
-            throw new \InvalidArgumentException('Directory could not be found.');
+            return;
         }
 
-        $files = \glob($directory . '/*.php');
+        $files = glob($directory . '/*.php');
         foreach ($files as $file) {
             $this->addFile($file);
         }
     }
 
     /**
-     * @return string[]
+     * Get the file paths.
+     *
+     * @return string[] The file paths.
      */
     public function getFilePaths(): array
     {
-        return array_keys($this->paths);
+        return array_keys($this->filePaths);
     }
 }
