@@ -14,7 +14,7 @@ use function cos;
 
 /**
  * Overrides declared for
- * - \cos() : FQCN
+ * - \cos() : (C1)
  *
  * @package My\Integration\TestClassMapOverride
  */

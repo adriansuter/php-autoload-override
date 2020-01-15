@@ -12,7 +12,7 @@ namespace My\Integration\TestClassMapOverride;
 
 /**
  * Overrides declared for
- * - \cos() : FQNS
+ * - \cos() : (N2)
  *
  * @package My\Integration\TestClassMapOverride
  */
