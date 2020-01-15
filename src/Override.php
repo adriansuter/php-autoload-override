@@ -52,6 +52,8 @@ class Override
     private static $converter;
 
     /**
+     * Set the code converter to be used.
+     *
      * @param CodeConverter $converter
      */
     public static function setCodeConverter(CodeConverter $converter): void

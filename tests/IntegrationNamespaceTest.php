@@ -34,12 +34,15 @@ class IntegrationNamespaceTest extends AbstractIntegrationTest
     public function testEarth()
     {
         $earth = new \My\Integration\TestNamespaceOverride\Earth();
-// Calls substr() which is a local function in the namespace.
+
+        // Calls substr() which is a local function in the namespace.
         $this->assertEquals('GFE', $earth->substrLocal());
-// Calls \substr() > Overridden by FQNS-declaration.
+
+        // Calls \substr() > Overridden by FQNS-declaration.
         $GLOBALS['substr_return'] = 'XYZ';
         $this->assertEquals('XYZ', $earth->substrGlobal());
-// Calls \time() > No override.
+
+        // Calls \time() > No override.
         $GLOBALS['time_return'] = 3;
         $this->assertGreaterThanOrEqual(\time(), $earth->time());
     }
@@ -47,13 +50,16 @@ class IntegrationNamespaceTest extends AbstractIntegrationTest
     public function testMoon()
     {
         $moon = new \My\Integration\TestNamespaceOverride\Moon();
-// Calls \time() > Overridden by FQCN.
+
+        // Calls \time() > Overridden by FQCN.
         $GLOBALS['time_return'] = 1;
         $this->assertEquals(1, $moon->time());
-// Calls \time()-alias > Overridden by FQCN.
+
+        // Calls \time()-alias > Overridden by FQCN.
         $GLOBALS['time_return'] = 2;
         $this->assertEquals(2, $moon->timeUseAlias());
-// Calls \substr() > Overridden by FQNS-declaration.
+
+        // Calls \substr() > Overridden by FQNS-declaration.
         $GLOBALS['substr_return'] = 'ZZZ';
         $this->assertEquals('ZZZ', $moon->substr('AAA', 0, 2));
     }

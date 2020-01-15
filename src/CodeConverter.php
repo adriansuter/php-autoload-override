@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
+use Exception;
 use PhpParser\Lexer;
 use PhpParser\Lexer\Emulative;
 use PhpParser\Node\Expr\FuncCall;
@@ -21,6 +22,7 @@ use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 use PhpParser\Parser\Php7;
 use PhpParser\PrettyPrinter\Standard;
+use RuntimeException;
 
 use function array_keys;
 use function array_values;
@@ -61,12 +63,12 @@ class CodeConverter
     protected $nodeFinder;
 
     /**
-     * @param Lexer|null $lexer The PHP Lexer.
-     * @param Parser|null $parser The PHP Parser.
-     * @param NodeTraverser|null $traverser The PHP Node Traverser - make sure that the traverser has a CloningVisitor
-     *                                      and a NameResolver visitor.
-     * @param Standard|null $printer The PHP Printer.
-     * @param NodeFinder|null $nodeFinder The PHP Node Finder.
+     * @param Lexer|null         $lexer      The PHP Lexer.
+     * @param Parser|null        $parser     The PHP Parser.
+     * @param NodeTraverser|null $traverser  The PHP Node Traverser - make sure that the traverser has a CloningVisitor
+     *                                       and a NameResolver visitor.
+     * @param Standard|null      $printer    The PHP Printer.
+     * @param NodeFinder|null    $nodeFinder The PHP Node Finder.
      */
     public function __construct(
         ?Lexer $lexer = null,
@@ -75,7 +77,12 @@ class CodeConverter
         ?Standard $printer = null,
         ?NodeFinder $nodeFinder = null
     ) {
-        $this->lexer = $lexer ?? $this->defaultLexer();
+        if ($lexer === null) {
+            $lexer = new Emulative(
+                ['usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos']]
+            );
+        }
+        $this->lexer = $lexer;
 
         $this->parser = $parser ?? new Php7($this->lexer);
 
@@ -92,29 +99,21 @@ class CodeConverter
     }
 
     /**
-     * @return Lexer
-     */
-    private function defaultLexer(): Lexer
-    {
-        return new Emulative(
-            [
-                'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
-            ]
-        );
-    }
-
-    /**
      * Convert the given source code.
      *
-     * @param string $code The source code.
-     * @param array $functionCallMap The function call map.
+     * @param string $code            The source code.
+     * @param array  $functionCallMap The function call map.
      *
      * @return string
      */
     public function convert(string $code, array $functionCallMap): string
     {
-        $oldStmts = $this->parser->parse($code);
-        $oldTokens = $this->lexer->getTokens();
+        try {
+            $oldStmts = $this->parser->parse($code);
+            $oldTokens = $this->lexer->getTokens();
+        } catch (Exception $exception) {
+            throw new RuntimeException('Code Converter failed to parse the code.', 0, $exception);
+        }
 
         $overridePlaceholders = [];
 
