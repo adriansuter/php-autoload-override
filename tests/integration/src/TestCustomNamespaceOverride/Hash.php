@@ -12,7 +12,7 @@ namespace My\Integration\TestCustomNamespaceOverride;
 
 /**
  * Overrides declared for
- * - \md5() : FQCN
+ * - \md5() : (C1)
  *
  * @package My\Integration\TestCustomNamespaceOverride
  */
