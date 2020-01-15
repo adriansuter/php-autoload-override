@@ -21,20 +21,19 @@ use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
 
-/**
- * @runTestsInSeparateProcesses
- */
 class OverrideTest extends TestCase
 {
     public function testSetCodeConverter()
     {
-        $converter = $this->createMock(CodeConverter::class);
-
-        Override::setCodeConverter($converter);
-
         $converterReflectionProperty = new ReflectionProperty(Override::class, 'converter');
         $converterReflectionProperty->setAccessible(true);
+        $originalConverter = $converterReflectionProperty->getValue();
+
+        $converter = $this->createMock(CodeConverter::class);
+        Override::setCodeConverter($converter);
         $this->assertEquals($converter, $converterReflectionProperty->getValue());
+
+        $converterReflectionProperty->setValue(null, $originalConverter);
     }
 
     public function testApplyApcu()
@@ -45,7 +44,7 @@ class OverrideTest extends TestCase
         $classLoaderProphecy = $this->prophesize(ClassLoader::class);
 
         $getApcuPrefixMethodProphecy = new MethodProphecy($classLoaderProphecy, 'getApcuPrefix', []);
-        $getApcuPrefixMethodProphecy->willReturn('a');
+        $getApcuPrefixMethodProphecy->willReturn('apcu');
 
         $classLoaderProphecy->addMethodProphecy($getApcuPrefixMethodProphecy);
 
