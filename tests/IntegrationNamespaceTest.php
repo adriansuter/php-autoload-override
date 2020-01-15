@@ -14,6 +14,8 @@ class IntegrationNamespaceTest extends AbstractIntegrationTest
 {
     public static function setUpBeforeClass(): void
     {
+        parent::setUpBeforeClass();
+
         require_once(__DIR__ . '/assets/PHPAutoloadOverride.php');
     }
 

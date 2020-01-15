@@ -14,6 +14,8 @@ class IntegrationCustomNamespaceTest extends AbstractIntegrationTest
 {
     public static function setUpBeforeClass(): void
     {
+        parent::setUpBeforeClass();
+
         require_once(__DIR__ . '/assets/PHPCustomAutoloadOverride.php');
     }
 
@@ -29,7 +31,8 @@ class IntegrationCustomNamespaceTest extends AbstractIntegrationTest
     public function testHash()
     {
         $hash = new \My\Integration\TestCustomNamespaceOverride\Hash();
-// Calls \md5() > Overridden by FQCN-declaration.
+
+        // Calls \md5() > Overridden by FQCN-declaration.
         $GLOBALS['md5_return'] = '---';
         $this->assertEquals('---', $hash->hash('1'));
     }
