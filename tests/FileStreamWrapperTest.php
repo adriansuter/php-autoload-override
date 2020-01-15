@@ -22,7 +22,7 @@ final class FileStreamWrapperTest extends TestCase
      */
     private $tempFilePath;
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         // Make sure that we restore the default file stream wrapper.
         \stream_wrapper_restore('file');

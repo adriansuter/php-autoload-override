@@ -12,7 +12,7 @@ namespace AdrianSuter\Autoload\Override\Tests;
 
 class IntegrationCustomNamespaceTest extends AbstractIntegrationTest
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         require_once(__DIR__ . '/assets/PHPCustomAutoloadOverride.php');
     }

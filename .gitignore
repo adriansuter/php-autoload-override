@@ -4,3 +4,4 @@ composer.lock
 coverage
 docs/_site
 vendor
+.phpunit.result.cache
