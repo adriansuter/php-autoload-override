@@ -15,11 +15,19 @@ use PHPUnit\Framework\TestCase;
 
 class AutoloadCollectionTest extends TestCase
 {
-    public function testAddDirectory()
+    public function testAddFile()
+    {
+        $autoloadCollection = new AutoloadCollection();
+        $autoloadCollection->addFile(__DIR__ . '/sub/../' . basename(__FILE__));
+
+        $this->assertEquals([realpath(__FILE__)], $autoloadCollection->getFilePaths());
+    }
+
+    public function testAddDirectoryNonExistent()
     {
         $autoloadCollection = new AutoloadCollection();
         $autoloadCollection->addDirectory(__DIR__ . '/not-existent');
 
-        $this->assertTrue(true);
+        $this->assertEmpty($autoloadCollection->getFilePaths());
     }
 }

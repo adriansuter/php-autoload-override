@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace AdrianSuter\Autoload\Override;
 
 use function array_keys;
-use function file_exists;
 use function glob;
 use function is_dir;
 use function realpath;
@@ -50,11 +49,7 @@ class AutoloadCollection
      */
     public function addDirectory(string $directory): void
     {
-        if (
-            !file_exists($directory) ||
-            !is_dir($directory) ||
-            false === ($directory = realpath($directory))
-        ) {
+        if (!is_dir($directory) || false === ($directory = realpath($directory))) {
             return;
         }
 
