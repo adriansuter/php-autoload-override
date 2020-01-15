@@ -52,10 +52,10 @@ class ClosureHandler
      *
      * This method would overwrite any previously defined closure with the same name.
      *
-     * @param string $name The closure name.
+     * @param string  $name    The closure name.
      * @param Closure $closure The closure.
      */
-    public function addClosure(string $name, Closure $closure): void
+    public function setClosure(string $name, Closure $closure): void
     {
         $this->closures[$name] = $closure;
     }
@@ -63,8 +63,8 @@ class ClosureHandler
     /**
      * Magic call.
      *
-     * @param string $name The method name.
-     * @param array $arguments The method arguments.
+     * @param string $name      The method name.
+     * @param array  $arguments The method arguments.
      *
      * @return mixed
      */
@@ -77,6 +77,8 @@ class ClosureHandler
             );
         }
 
-        throw new RuntimeException(sprintf('Closure Override "%s" could not be found.', $name));
+        throw new RuntimeException(
+            sprintf('Closure Override "%s" could not be found.', $name)
+        );
     }
 }

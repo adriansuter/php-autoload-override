@@ -21,13 +21,9 @@ use function class_exists;
 use function clearstatcache;
 use function dirname;
 use function explode;
-use function file_exists;
 use function implode;
 use function is_dir;
-use function is_numeric;
-use function is_string;
 use function realpath;
-use function spl_object_hash;
 use function stream_wrapper_register;
 use function stream_wrapper_restore;
 use function stream_wrapper_unregister;
@@ -55,7 +51,6 @@ class Override
      */
     private static $converter;
 
-
     /**
      * @param CodeConverter $converter
      */
@@ -77,9 +72,9 @@ class Override
     }
 
     /**
-     * @param ClassLoader $classLoader
+     * @param ClassLoader        $classLoader
      * @param string[]|Closure[] $functionCallMap
-     * @param string $overrideNamespace
+     * @param string             $overrideNamespace
      */
     public static function apply(
         ClassLoader $classLoader,
@@ -102,9 +97,15 @@ class Override
         // Initialize the collection of files we would force to load (include).
         $autoloadCollection = new AutoloadCollection();
 
+        // Create the function call map factory.
+        $functionCallMapFactory = new FunctionCallMapFactory(
+            $overrideNamespace,
+            ClosureHandler::getInstance()
+        );
+
         foreach ($functionCallMap as $fqn => $map) {
-            // Build the fqn function call map.
-            $fqnFunctionCallMap = self::buildFunctionCallMap($map, $overrideNamespace);
+            // Create the fqn function call map.
+            $fqnFunctionCallMap = $functionCallMapFactory->createFunctionCallMap($map);
 
             if (substr($fqn, -1, 1) === '\\') {
                 // The given fqn is a namespace.
@@ -155,9 +156,6 @@ class Override
                     }
                 }
 
-                //foreach ($classLoader->getFallbackDirsPsr4() as $fallbackDirPsr4) {
-                // TODO: Handle this case.
-                //}
                 continue;
             }
 
@@ -187,33 +185,6 @@ class Override
 
         stream_wrapper_restore('file');
         clearstatcache();
-    }
-
-    /**
-     * Build a mapping between root namespaced function calls and their overridden fully qualified name.
-     *
-     * @param string[]|Closure[] $map
-     * @param string $namespace
-     *
-     * @return string[]
-     */
-    private static function buildFunctionCallMap(array $map, string $namespace): array
-    {
-        $functionCallMap = [];
-        foreach ($map as $key => $val) {
-            if (is_numeric($key)) {
-                $functionCallMap['\\' . $val] = $namespace . '\\' . $val;
-            } elseif (is_string($val)) {
-                $functionCallMap['\\' . $key] = $val . '\\' . $key;
-            } elseif ($val instanceof Closure) {
-                $name = $key . '_' . spl_object_hash($val);
-                ClosureHandler::getInstance()->addClosure($name, $val);
-
-                $functionCallMap['\\' . $key] = ClosureHandler::class . '::getInstance()->' . $name;
-            }
-        }
-
-        return $functionCallMap;
     }
 
     private static function addDirectoryFunctionCallMap(
@@ -268,7 +239,7 @@ class Override
      * Convert the source code using the fqn function call map.
      *
      * @param string $source
-     * @param array $functionCallMap
+     * @param array  $functionCallMap
      *
      * @return string
      */

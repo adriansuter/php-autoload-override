@@ -19,7 +19,7 @@ final class ClosureHandlerTest extends TestCase
     public function testDefault()
     {
         $closureHandler = ClosureHandler::getInstance();
-        $closureHandler->addClosure(
+        $closureHandler->setClosure(
             'test',
             function (): int {
                 return 42;
