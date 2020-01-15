@@ -16,13 +16,13 @@ class IntegrationClassMapTest extends AbstractIntegrationTest
     {
         return [
             \My\Integration\TestClassMapOverride\Calculator::class => [
-                // (1)
+                // (C1)
                 'cos' => function (float $arg): float {
                     return \sin($arg);
                 },
             ],
             'My\\Integration\\TestClassMapOverride\\' => [
-                // (2)
+                // (N2)
                 'cos' => function (float $arg): float {
                     return $arg * 2;
                 },
@@ -34,7 +34,7 @@ class IntegrationClassMapTest extends AbstractIntegrationTest
     {
         $calculator = new \My\Integration\TestClassMapOverride\Calculator();
 
-        // Calls \cos() > Overridden by declaration (1).
+        // Calls \cos() > Overridden by declaration (C1).
         $this->assertEquals(\sin(\pi() / 2), $calculator->cos(\pi() / 2));
     }
 
@@ -42,7 +42,7 @@ class IntegrationClassMapTest extends AbstractIntegrationTest
     {
         $geometry = new \My\Integration\TestClassMapOverride\SubNamespace\Geometry();
 
-        // Calls \cos() > Overridden by declaration (2).
+        // Calls \cos() > Overridden by declaration (N2).
         $this->assertEquals(1, $geometry->cos(0.5));
     }
 
@@ -50,7 +50,7 @@ class IntegrationClassMapTest extends AbstractIntegrationTest
     {
         $otherCalculator = new \My\Integration\TestClassMapOverride\OtherCalculator();
 
-        // Calls \cos() > Overridden by declaration (2).
+        // Calls \cos() > Overridden by declaration (N2).
         $this->assertEquals(2, $otherCalculator->cos(1));
     }
 }
