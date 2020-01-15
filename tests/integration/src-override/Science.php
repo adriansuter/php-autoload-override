@@ -12,7 +12,7 @@ namespace AdrianSuter\Autoload\Override;
 
 /**
  * Overrides declared for
- * - \str_repeat() : FQCN
+ * - \str_repeat() : (C1)
  *
  * @package AdrianSuter\Autoload\Override
  */

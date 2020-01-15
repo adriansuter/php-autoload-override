@@ -12,7 +12,7 @@ namespace AdrianSuter\Autoload\Override\SubSpace;
 
 /**
  * Overrides declared for
- * - \str_repeat() : FQNS
+ * - \str_repeat() : (N2)
  *
  * @package AdrianSuter\Autoload\Override\SubSpace
  */
