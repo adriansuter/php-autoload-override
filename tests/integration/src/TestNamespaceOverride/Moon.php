@@ -14,8 +14,8 @@ use function time as time_alias;
 
 /**
  * Overrides declared for
- * - \substr() : FQNS
- * - \time() : FQCN
+ * - \time() : (C1)
+ * - \substr() : (N2)
  *
  * @package My\Integration\TestNamespaceOverride
  */

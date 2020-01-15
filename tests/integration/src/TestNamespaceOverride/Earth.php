@@ -17,7 +17,7 @@ function substr(string $input, int $start, int $length)
 
 /**
  * Overrides declared for
- * - \substr() : FQNS
+ * - \substr() : (N2)
  *
  * @package My\Integration\TestNamespaceOverride
  */
