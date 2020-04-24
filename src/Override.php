@@ -21,7 +21,6 @@ use function class_exists;
 use function clearstatcache;
 use function dirname;
 use function explode;
-use function file_exists;
 use function implode;
 use function is_dir;
 use function is_numeric;
@@ -78,7 +77,7 @@ class Override
 
     /**
      * @param ClassLoader $classLoader
-     * @param string[]|Closure[] $functionCallMap
+     * @param string[][]|Closure[][] $functionCallMap
      * @param string $overrideNamespace
      */
     public static function apply(
