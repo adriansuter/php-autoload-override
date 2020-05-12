@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
+use RuntimeException;
+
 use function chgrp;
 use function chmod;
 use function chown;
@@ -47,12 +49,12 @@ use function unlink;
 class FileStreamWrapper
 {
     /**
-     * @var resource
+     * @var resource|null
      */
     public $context;
 
     /**
-     * @var resource|null
+     * @var resource|null|false
      */
     private $resource;
 
@@ -65,7 +67,9 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        closedir($this->resource);
+        if (is_resource($this->resource)) {
+            closedir($this->resource);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -108,7 +112,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = readdir($this->resource);
+        $r = false;
+        if (is_resource($this->resource)) {
+            $r = readdir($this->resource);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -126,7 +133,9 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        rewinddir($this->resource);
+        if (is_resource($this->resource)) {
+            rewinddir($this->resource);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -234,7 +243,9 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        fclose($this->resource);
+        if (is_resource($this->resource)) {
+            fclose($this->resource);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -250,7 +261,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = feof($this->resource);
+        $r = false;
+        if (is_resource($this->resource)) {
+            $r = feof($this->resource);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -268,7 +282,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = fflush($this->resource);
+        $r = false;
+        if (is_resource($this->resource)) {
+            $r = fflush($this->resource);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -307,7 +324,7 @@ class FileStreamWrapper
         $r = false;
         switch ($option) {
             case STREAM_META_TOUCH:
-                if (!isset($value[0]) || $value[0] === null) {
+                if (!isset($value[0]) || is_null($value[0])) {
                     $r = touch($path);
                 } else {
                     $r = touch($path, $value[0], $value[1]);
@@ -361,11 +378,16 @@ class FileStreamWrapper
         // Replace the global function calls into local function calls.
         if (!empty($functionCallMap)) {
             $source = file_get_contents($path, $usePath);
+            if (!is_string($source)) {
+                throw new RuntimeException(sprintf("File `%s` could not be loaded.", $path));
+            }
             $source = Override::convert($source, $functionCallMap);
 
             $this->resource = fopen('php://temp', 'w+');
-            fwrite($this->resource, $source);
-            fseek($this->resource, 0);
+            if (is_resource($this->resource)) {
+                fwrite($this->resource, $source);
+                fseek($this->resource, 0);
+            }
         } elseif (is_resource($this->context)) {
             $this->resource = fopen($path, $mode, $usePath, $this->context);
         } else {
@@ -390,7 +412,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = fgets($this->resource, $count);
+        $r = false;
+        if (is_resource($this->resource)) {
+            $r = fgets($this->resource, $count);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -415,7 +440,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = fseek($this->resource, $offset, $whence);
+        $r = -1;
+        if (is_resource($this->resource)) {
+            $r = fseek($this->resource, $offset, $whence);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -440,21 +468,29 @@ class FileStreamWrapper
         $r = false;
         switch ($option) {
             case STREAM_OPTION_BLOCKING:
-                $r = stream_set_blocking($this->resource, $arg1 ? true : false);
+                if (is_resource($this->resource)) {
+                    $r = stream_set_blocking($this->resource, $arg1 ? true : false);
+                }
                 break;
 
             case STREAM_OPTION_READ_TIMEOUT:
-                $r = stream_set_timeout($this->resource, $arg1, $arg2);
+                if (is_resource($this->resource)) {
+                    $r = stream_set_timeout($this->resource, $arg1, $arg2);
+                }
                 break;
 
             case STREAM_OPTION_WRITE_BUFFER:
                 switch ($arg1) {
                     case STREAM_BUFFER_NONE:
-                        $r = stream_set_write_buffer($this->resource, 0);
+                        if (is_resource($this->resource)) {
+                            $r = stream_set_write_buffer($this->resource, 0);
+                        }
                         break;
 
                     case STREAM_BUFFER_FULL:
-                        $r = stream_set_write_buffer($this->resource, $arg2);
+                        if (is_resource($this->resource) && is_int($arg2)) {
+                            $r = stream_set_write_buffer($this->resource, $arg2);
+                        }
                         break;
                 }
                 break;
@@ -469,14 +505,20 @@ class FileStreamWrapper
     /**
      * Retrieve information about a file resource.
      *
-     * @return array
+     * @return array<int|string, int>
      * @noinspection PhpUnused
      */
     public function stream_stat(): array
     {
         stream_wrapper_restore('file');
 
-        $r = fstat($this->resource);
+        $r = [];
+        if (is_resource($this->resource)) {
+            $r = fstat($this->resource);
+            if (!is_array($r)) {
+                $r = [];
+            }
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -494,7 +536,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = fseek($this->resource, 0, SEEK_CUR);
+        $r = -1;
+        if (is_resource($this->resource)) {
+            $r = fseek($this->resource, 0, SEEK_CUR);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -514,7 +559,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = ftruncate($this->resource, $new_size);
+        $r = false;
+        if (is_resource($this->resource)) {
+            $r = ftruncate($this->resource, $new_size);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -534,7 +582,10 @@ class FileStreamWrapper
     {
         stream_wrapper_restore('file');
 
-        $r = fwrite($this->resource, $data);
+        $r = false;
+        if (is_resource($this->resource)) {
+            $r = fwrite($this->resource, $data);
+        }
 
         stream_wrapper_unregister('file');
         stream_wrapper_register('file', self::class);
@@ -567,7 +618,7 @@ class FileStreamWrapper
      * @param string $path
      * @param int $flags
      *
-     * @return array|false
+     * @return array<int|string, int>|false
      * @noinspection PhpUnused
      */
     public function url_stat(string $path, int $flags)

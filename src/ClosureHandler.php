@@ -64,7 +64,7 @@ class ClosureHandler
      * Magic call.
      *
      * @param string $name The method name.
-     * @param array $arguments The method arguments.
+     * @param array<mixed> $arguments The method arguments.
      *
      * @return mixed
      */

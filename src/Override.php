@@ -40,12 +40,12 @@ use function trim;
 class Override
 {
     /**
-     * @var array
+     * @var array<string, array<string, string>>
      */
     private static $fileFunctionCallMap;
 
     /**
-     * @var array
+     * @var array<string, array<string, string>>
      */
     private static $dirFunctionCallMap;
 
@@ -69,7 +69,7 @@ class Override
     private static function getCodeConverter(): CodeConverter
     {
         if (self::$converter === null) {
-            self::setCodeConverter(new CodeConverter());
+            self::$converter = new CodeConverter();
         }
 
         return self::$converter;
@@ -84,7 +84,7 @@ class Override
         ClassLoader $classLoader,
         array $functionCallMap,
         string $overrideNamespace = 'PHPAutoloadOverride'
-    ) {
+    ): void {
         if ($classLoader->getApcuPrefix() !== null) {
             throw new RuntimeException('APC User Cache is not supported.');
         }
@@ -194,13 +194,13 @@ class Override
      * @param string[]|Closure[] $map
      * @param string $namespace
      *
-     * @return string[]
+     * @return array<string, string>
      */
     private static function buildFunctionCallMap(array $map, string $namespace): array
     {
         $functionCallMap = [];
         foreach ($map as $key => $val) {
-            if (is_numeric($key)) {
+            if (is_numeric($key) && is_string($val)) {
                 $functionCallMap['\\' . $val] = $namespace . '\\' . $val;
             } elseif (is_string($val)) {
                 $functionCallMap['\\' . $key] = $val . '\\' . $key;
@@ -215,6 +215,11 @@ class Override
         return $functionCallMap;
     }
 
+    /**
+     * @param AutoloadCollection $autoloadCollection
+     * @param string $directory
+     * @param array<string, string> $fqnFunctionCallMap
+     */
     private static function addDirectoryFunctionCallMap(
         AutoloadCollection $autoloadCollection,
         string $directory,
@@ -240,7 +245,7 @@ class Override
     /**
      * @param string $filePath
      *
-     * @return string[]
+     * @return array<string, string>
      */
     public static function getFunctionCallMap(string $filePath): array
     {
@@ -267,7 +272,7 @@ class Override
      * Convert the source code using the fqn function call map.
      *
      * @param string $source
-     * @param array $functionCallMap
+     * @param array<string, string> $functionCallMap
      *
      * @return string
      */

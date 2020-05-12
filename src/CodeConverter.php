@@ -21,6 +21,7 @@ use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 use PhpParser\Parser\Php7;
 use PhpParser\PrettyPrinter\Standard;
+use RuntimeException;
 
 use function array_keys;
 use function array_values;
@@ -107,20 +108,23 @@ class CodeConverter
      * Convert the given source code.
      *
      * @param string $code The source code.
-     * @param array $functionCallMap The function call map.
+     * @param array<string, string> $functionCallMap The function call map.
      *
      * @return string
      */
     public function convert(string $code, array $functionCallMap): string
     {
         $oldStmts = $this->parser->parse($code);
-        $oldTokens = $this->lexer->getTokens();
+        if (is_null($oldStmts)) {
+            throw new RuntimeException('Code could not be parsed.');
+        }
 
-        $overridePlaceholders = [];
+        $oldTokens = $this->lexer->getTokens();
 
         $newStmts = $this->traverser->traverse($oldStmts);
 
         // Find function calls.
+        $overridePlaceholders = [];
         $funcCalls = $this->nodeFinder->findInstanceOf($newStmts, FuncCall::class);
         foreach ($funcCalls as $funcCall) {
             /** @var FuncCall $funcCall */
