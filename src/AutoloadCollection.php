@@ -59,8 +59,10 @@ class AutoloadCollection
         }
 
         $files = glob($directory . '/*.php');
-        foreach ($files as $file) {
-            $this->addFile($file);
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                $this->addFile($file);
+            }
         }
     }
 
