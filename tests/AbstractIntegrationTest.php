@@ -19,12 +19,12 @@ abstract class AbstractIntegrationTest extends TestCase
 
     private static $classLoader;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$classLoader = require(__DIR__ . '/../vendor/autoload.php');
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         if (!$this->overrideApplied) {
