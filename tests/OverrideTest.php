@@ -16,7 +16,6 @@ use AdrianSuter\Autoload\Override\Override;
 use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\MethodProphecy;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -27,8 +26,6 @@ use RuntimeException;
  */
 class OverrideTest extends TestCase
 {
-    use ProphecyTrait;
-
     public function testSetCodeConverter()
     {
         $converter = $this->createMock(CodeConverter::class);

@@ -14,14 +14,11 @@ use AdrianSuter\Autoload\Override\CodeConverter;
 use PhpParser\Parser;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\MethodProphecy;
 use RuntimeException;
 
 class CodeConverterTest extends TestCase
 {
-    use ProphecyTrait;
-
     public function testConvert(): void
     {
         $converter = new CodeConverter();
