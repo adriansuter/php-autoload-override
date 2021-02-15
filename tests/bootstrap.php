@@ -8,4 +8,9 @@
 
 declare(strict_types=1);
 
-include(__DIR__ . '/../vendor/autoload.php');
+use AdrianSuter\Autoload\Override\FileStreamWrapper;
+use Composer\Autoload\ClassLoader;
+
+/** @var ClassLoader $classLoader */
+$classLoader = include(__DIR__ . '/../vendor/autoload.php');
+$classLoader->loadClass(FileStreamWrapper::class);

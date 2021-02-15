@@ -1,6 +1,6 @@
 # PHP-Autoload-Override
 
-[![Build Status](https://travis-ci.org/adriansuter/php-autoload-override.svg?branch=master)](https://travis-ci.org/adriansuter/php-autoload-override)
+[![Build Status](https://github.com/adriansuter/php-autoload-override/workflows/Tests/badge.svg?branch=master)](https://github.com/adriansuter/php-autoload-override/actions?query=branch:master)
 [![Coverage Status](https://coveralls.io/repos/github/adriansuter/php-autoload-override/badge.svg?branch=master)](https://coveralls.io/github/adriansuter/php-autoload-override?branch=master)
 [![Total Downloads](https://poser.pugx.org/adriansuter/php-autoload-override/downloads)](https://packagist.org/packages/adriansuter/php-autoload-override)
 [![License](https://poser.pugx.org/adriansuter/php-autoload-override/license)](https://packagist.org/packages/adriansuter/php-autoload-override)
