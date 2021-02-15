@@ -15,6 +15,39 @@ use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use RuntimeException;
 
+use function chgrp;
+use function chmod;
+use function chown;
+use function closedir;
+use function fclose;
+use function fflush;
+use function file_exists;
+use function fopen;
+use function fseek;
+use function ftruncate;
+use function fwrite;
+use function is_dir;
+use function lstat;
+use function mkdir;
+use function opendir;
+use function readdir;
+use function rename;
+use function rewinddir;
+use function rmdir;
+use function stat;
+use function stream_set_blocking;
+use function stream_set_timeout;
+use function stream_set_write_buffer;
+use function stream_supports_lock;
+use function stream_wrapper_register;
+use function stream_wrapper_restore;
+use function stream_wrapper_unregister;
+use function sys_get_temp_dir;
+use function tempnam;
+use function time;
+use function touch;
+use function unlink;
+
 final class FileStreamWrapperTest extends TestCase
 {
     /**
@@ -25,20 +58,20 @@ final class FileStreamWrapperTest extends TestCase
     protected function tearDown(): void
     {
         // Make sure that we restore the default file stream wrapper.
-        \stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $this->deleteTempFile();
     }
 
     private function registerWrapper(): void
     {
-        \stream_wrapper_unregister('file');
-        \stream_wrapper_register('file', FileStreamWrapper::class);
+        stream_wrapper_unregister('file');
+        stream_wrapper_register('file', FileStreamWrapper::class);
     }
 
     private function createTempFile(bool $registerWrapper = true): void
     {
-        $this->tempFilePath = \tempnam(\sys_get_temp_dir(), 'FSW');
+        $this->tempFilePath = tempnam(sys_get_temp_dir(), 'FSW');
         if (false === $this->tempFilePath) {
             throw new RuntimeException('Temporary file could not be created');
         }
@@ -54,7 +87,7 @@ final class FileStreamWrapperTest extends TestCase
             return;
         }
 
-        \unlink($this->tempFilePath);
+        unlink($this->tempFilePath);
         $this->tempFilePath = null;
     }
 
@@ -62,14 +95,14 @@ final class FileStreamWrapperTest extends TestCase
     {
         $this->registerWrapper();
 
-        $fp = \opendir(__DIR__);
+        $fp = opendir(__DIR__);
         $this->assertTrue(\is_resource($fp));
 
-        $item = \readdir($fp);
+        $item = readdir($fp);
         $this->assertTrue(\is_string($item));
 
-        \rewinddir($fp);
-        \closedir($fp);
+        rewinddir($fp);
+        closedir($fp);
     }
 
     public function testDirOpenDirWithoutContext()
@@ -83,35 +116,35 @@ final class FileStreamWrapperTest extends TestCase
 
     public function testMkdirRenameRmdir()
     {
-        $directory = \sys_get_temp_dir() . '/fileStreamWrapper';
-        $directory2 = \sys_get_temp_dir() . '/fileStreamWrapper2';
+        $directory = sys_get_temp_dir() . '/fileStreamWrapper';
+        $directory2 = sys_get_temp_dir() . '/fileStreamWrapper2';
 
-        if (\file_exists($directory) && \is_dir($directory)) {
-            \rmdir($directory);
+        if (file_exists($directory) && is_dir($directory)) {
+            rmdir($directory);
         }
 
-        if (\file_exists($directory2) && \is_dir($directory2)) {
-            \rmdir($directory2);
+        if (file_exists($directory2) && is_dir($directory2)) {
+            rmdir($directory2);
         }
 
         $this->registerWrapper();
 
-        $this->assertTrue(\mkdir($directory, 0755, false));
-        $this->assertTrue(\rename($directory, $directory2));
-        $this->assertTrue(\rmdir($directory2));
+        $this->assertTrue(mkdir($directory, 0755, false));
+        $this->assertTrue(rename($directory, $directory2));
+        $this->assertTrue(rmdir($directory2));
     }
 
     public function testMkdirRenameRmdirWithoutContext()
     {
-        $directory = \sys_get_temp_dir() . '/fileStreamWrapper';
-        $directory2 = \sys_get_temp_dir() . '/fileStreamWrapper2';
+        $directory = sys_get_temp_dir() . '/fileStreamWrapper';
+        $directory2 = sys_get_temp_dir() . '/fileStreamWrapper2';
 
-        if (\file_exists($directory) && \is_dir($directory)) {
-            \rmdir($directory);
+        if (file_exists($directory) && is_dir($directory)) {
+            rmdir($directory);
         }
 
-        if (\file_exists($directory2) && \is_dir($directory2)) {
-            \rmdir($directory2);
+        if (file_exists($directory2) && is_dir($directory2)) {
+            rmdir($directory2);
         }
 
         $fileStreamWrapper = new FileStreamWrapper();
@@ -125,7 +158,7 @@ final class FileStreamWrapperTest extends TestCase
         $fileStreamWrapper = new FileStreamWrapper();
         $this->assertFalse($fileStreamWrapper->stream_cast(0));
 
-        $resource = \fopen('php://temp', 'r+');
+        $resource = fopen('php://temp', 'r+');
 
         $prop = new ReflectionProperty(FileStreamWrapper::class, 'resource');
         $prop->setAccessible(true);
@@ -133,115 +166,115 @@ final class FileStreamWrapperTest extends TestCase
 
         $this->assertEquals($resource, $fileStreamWrapper->stream_cast(0));
 
-        \fclose($resource);
+        fclose($resource);
     }
 
     public function testTouch()
     {
         $this->createTempFile();
 
-        $this->assertTrue(\touch($this->tempFilePath));
-        $this->assertTrue(\touch($this->tempFilePath, \time()));
-        $this->assertTrue(\touch($this->tempFilePath, \time(), \time()));
+        $this->assertTrue(touch($this->tempFilePath));
+        $this->assertTrue(touch($this->tempFilePath, time()));
+        $this->assertTrue(touch($this->tempFilePath, time(), time()));
     }
 
     public function testChown()
     {
         $this->createTempFile(false);
 
-        $stat = \stat($this->tempFilePath);
+        $stat = stat($this->tempFilePath);
         $this->assertArrayHasKey('uid', $stat);
 
         $this->registerWrapper();
 
-        $this->assertIsBool(\chown($this->tempFilePath, $stat['uid']));
+        $this->assertIsBool(chown($this->tempFilePath, $stat['uid']));
     }
 
     public function testChgrp()
     {
         $this->createTempFile(false);
 
-        $stat = \stat($this->tempFilePath);
+        $stat = stat($this->tempFilePath);
         $this->assertArrayHasKey('gid', $stat);
 
         $this->registerWrapper();
 
-        $this->assertIsBool(\chgrp($this->tempFilePath, $stat['gid']));
+        $this->assertIsBool(chgrp($this->tempFilePath, $stat['gid']));
     }
 
     public function testChmod()
     {
         $this->createTempFile();
 
-        $this->assertTrue(\chmod($this->tempFilePath, 0755));
+        $this->assertTrue(chmod($this->tempFilePath, 0755));
     }
 
     public function testFlush()
     {
         $this->createTempFile();
 
-        $fp = \fopen($this->tempFilePath, 'r');
-        $this->assertTrue(\fflush($fp));
-        \fclose($fp);
+        $fp = fopen($this->tempFilePath, 'r');
+        $this->assertTrue(fflush($fp));
+        fclose($fp);
     }
 
     public function testSeek()
     {
         $this->createTempFile();
 
-        $fp = \fopen($this->tempFilePath, 'r');
-        $this->assertEquals(0, \fseek($fp, 0, SEEK_SET));
-        \fclose($fp);
+        $fp = fopen($this->tempFilePath, 'r');
+        $this->assertEquals(0, fseek($fp, 0, SEEK_SET));
+        fclose($fp);
     }
 
     public function testTruncate()
     {
         $this->createTempFile();
 
-        $fp = \fopen($this->tempFilePath, 'w');
-        $this->assertTrue(\ftruncate($fp, 0));
-        \fclose($fp);
+        $fp = fopen($this->tempFilePath, 'w');
+        $this->assertTrue(ftruncate($fp, 0));
+        fclose($fp);
     }
 
     public function testWrite()
     {
         $this->createTempFile();
 
-        $fp = \fopen($this->tempFilePath, 'w');
-        $this->assertNotFalse(\fwrite($fp, '1234'));
-        \fclose($fp);
+        $fp = fopen($this->tempFilePath, 'w');
+        $this->assertNotFalse(fwrite($fp, '1234'));
+        fclose($fp);
     }
 
     public function testLock()
     {
         $this->createTempFile();
 
-        $fp = \fopen($this->tempFilePath, 'w+');
-        $this->assertFalse(\stream_supports_lock($fp));
-        \fclose($fp);
+        $fp = fopen($this->tempFilePath, 'w+');
+        $this->assertFalse(stream_supports_lock($fp));
+        fclose($fp);
     }
 
     public function testSetOption()
     {
         $this->createTempFile();
 
-        $fp = \fopen($this->tempFilePath, 'w+');
+        $fp = fopen($this->tempFilePath, 'w+');
 
-        $this->assertIsBool(\stream_set_blocking($fp, true));
-        $this->assertIsBool(\stream_set_timeout($fp, 5, 0));
-        $this->assertIsNumeric(\stream_set_write_buffer($fp, 2048));
+        $this->assertIsBool(stream_set_blocking($fp, true));
+        $this->assertIsBool(stream_set_timeout($fp, 5, 0));
+        $this->assertIsNumeric(stream_set_write_buffer($fp, 2048));
 
-        $this->assertIsBool(\stream_set_blocking($fp, false));
-        $this->assertIsNumeric(\stream_set_write_buffer($fp, 0));
+        $this->assertIsBool(stream_set_blocking($fp, false));
+        $this->assertIsNumeric(stream_set_write_buffer($fp, 0));
 
-        \fclose($fp);
+        fclose($fp);
     }
 
     public function testUnlink()
     {
         $this->createTempFile();
 
-        $this->assertTrue(\unlink($this->tempFilePath));
+        $this->assertTrue(unlink($this->tempFilePath));
         $this->tempFilePath = null;
     }
 
@@ -249,7 +282,7 @@ final class FileStreamWrapperTest extends TestCase
     {
         $this->createTempFile();
 
-        $this->assertIsArray(\stat($this->tempFilePath));
-        $this->assertIsArray(\lstat($this->tempFilePath));
+        $this->assertIsArray(stat($this->tempFilePath));
+        $this->assertIsArray(lstat($this->tempFilePath));
     }
 }
