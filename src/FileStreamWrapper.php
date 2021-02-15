@@ -65,7 +65,7 @@ class FileStreamWrapper
      */
     public function dir_closedir(): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         if (is_resource($this->resource)) {
             closedir($this->resource);
@@ -88,7 +88,7 @@ class FileStreamWrapper
      */
     public function dir_opendir(string $path, int $options): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         if (is_resource($this->context)) {
             $this->resource = opendir($path, $this->context);
@@ -110,7 +110,7 @@ class FileStreamWrapper
      */
     public function dir_readdir()
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         if (is_resource($this->resource)) {
@@ -131,7 +131,7 @@ class FileStreamWrapper
      */
     public function dir_rewinddir(): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         if (is_resource($this->resource)) {
             rewinddir($this->resource);
@@ -154,7 +154,7 @@ class FileStreamWrapper
      */
     public function mkdir(string $path, int $mode, int $options): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $recursive = $options & STREAM_MKDIR_RECURSIVE ? true : false;
         if (is_resource($this->context)) {
@@ -179,7 +179,7 @@ class FileStreamWrapper
      */
     public function rename(string $path_from, string $path_to): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         if (is_resource($this->context)) {
             $r = rename($path_from, $path_to, $this->context);
@@ -204,7 +204,7 @@ class FileStreamWrapper
      */
     public function rmdir(string $path, int $options): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         if (is_resource($this->context)) {
             $r = rmdir($path, $this->context);
@@ -241,7 +241,7 @@ class FileStreamWrapper
      */
     public function stream_close(): void
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         if (is_resource($this->resource)) {
             fclose($this->resource);
@@ -259,7 +259,7 @@ class FileStreamWrapper
      */
     public function stream_eof(): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         if (is_resource($this->resource)) {
@@ -280,7 +280,7 @@ class FileStreamWrapper
      */
     public function stream_flush(): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         if (is_resource($this->resource)) {
@@ -319,7 +319,7 @@ class FileStreamWrapper
      */
     public function stream_metadata(string $path, int $option, $value): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         switch ($option) {
@@ -366,7 +366,7 @@ class FileStreamWrapper
      */
     public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $usePath = $options & STREAM_USE_PATH ? true : false;
         // $reportErrors = $options & STREAM_REPORT_ERRORS ? true : false;
@@ -410,7 +410,7 @@ class FileStreamWrapper
      */
     public function stream_read(int $count): string
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         if (is_resource($this->resource)) {
@@ -438,7 +438,7 @@ class FileStreamWrapper
      */
     public function stream_seek(int $offset, int $whence = SEEK_SET): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = -1;
         if (is_resource($this->resource)) {
@@ -463,7 +463,7 @@ class FileStreamWrapper
      */
     public function stream_set_option(int $option, int $arg1, ?int $arg2)
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         switch ($option) {
@@ -510,7 +510,7 @@ class FileStreamWrapper
      */
     public function stream_stat(): array
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = [];
         if (is_resource($this->resource)) {
@@ -534,7 +534,7 @@ class FileStreamWrapper
      */
     public function stream_tell(): int
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = -1;
         if (is_resource($this->resource)) {
@@ -557,7 +557,7 @@ class FileStreamWrapper
      */
     public function stream_truncate(int $new_size): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         if (is_resource($this->resource)) {
@@ -580,7 +580,7 @@ class FileStreamWrapper
      */
     public function stream_write(string $data)
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = false;
         if (is_resource($this->resource)) {
@@ -602,7 +602,7 @@ class FileStreamWrapper
      */
     public function unlink(string $path): bool
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $r = unlink($path);
 
@@ -623,7 +623,7 @@ class FileStreamWrapper
      */
     public function url_stat(string $path, int $flags)
     {
-        stream_wrapper_restore('file');
+        @stream_wrapper_restore('file');
 
         $urlStatLink = $flags & STREAM_URL_STAT_LINK ? true : false;
         $urlStatQuiet = $flags & STREAM_URL_STAT_QUIET ? true : false;
