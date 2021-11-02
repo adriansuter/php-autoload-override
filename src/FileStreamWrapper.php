@@ -28,6 +28,7 @@ use function fstat;
 use function ftruncate;
 use function fwrite;
 use function is_int;
+use function is_null;
 use function is_resource;
 use function is_string;
 use function lstat;
@@ -468,9 +469,9 @@ class FileStreamWrapper
     /**
      * Change stream options.
      *
-     * @param int $option
-     * @param int $arg1
-     * @param int $arg2
+     * @param int      $option
+     * @param int      $arg1
+     * @param int|null $arg2
      *
      * @return bool|int
      * @noinspection PhpUnused
@@ -483,11 +484,14 @@ class FileStreamWrapper
         switch ($option) {
             case STREAM_OPTION_BLOCKING:
                 if (is_resource($this->resource)) {
-                    $r = stream_set_blocking($this->resource, $arg1 ? true : false);
+                    $r = stream_set_blocking($this->resource, (bool)$arg1);
                 }
                 break;
 
             case STREAM_OPTION_READ_TIMEOUT:
+                if (is_null($arg2)) {
+                    throw new InvalidArgumentException('Parameter #3 expects int.');
+                }
                 if (is_resource($this->resource)) {
                     $r = stream_set_timeout($this->resource, $arg1, $arg2);
                 }
@@ -564,7 +568,8 @@ class FileStreamWrapper
     /**
      * Truncate stream.
      *
-     * @param int $new_size
+     * @param int                $new_size
+     * @psalm-param positive-int $new_size
      *
      * @return bool
      * @noinspection PhpUnused

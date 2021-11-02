@@ -1,9 +1,2 @@
 parameters:
     level: max
-    ignoreErrors:
-      - message: '/Parameter \#3 \$microseconds of function stream_set_timeout expects int, int\|null given/'
-        path: src/FileStreamWrapper.php
-        count: 1
-      - message: '/Parameter \#2 \$size of function ftruncate expects int\<0, max\>, int given/'
-        path: src/FileStreamWrapper.php
-        count: 1
