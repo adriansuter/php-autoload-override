@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
+use InvalidArgumentException;
 use RuntimeException;
 
 use function chgrp;
@@ -26,6 +27,7 @@ use function fseek;
 use function fstat;
 use function ftruncate;
 use function fwrite;
+use function is_int;
 use function is_resource;
 use function is_string;
 use function lstat;
@@ -81,7 +83,7 @@ class FileStreamWrapper
      * Open directory handle.
      *
      * @param string $path
-     * @param int $options
+     * @param int    $options
      *
      * @return bool
      * @noinspection PhpUnusedParameterInspection
@@ -147,8 +149,8 @@ class FileStreamWrapper
      * Create a directory.
      *
      * @param string $path
-     * @param int $mode
-     * @param int $options
+     * @param int    $mode
+     * @param int    $options
      *
      * @return bool
      */
@@ -197,7 +199,7 @@ class FileStreamWrapper
      * Remove a directory.
      *
      * @param string $path
-     * @param int $options
+     * @param int    $options
      *
      * @return bool
      * @noinspection PhpUnusedParameterInspection
@@ -237,6 +239,7 @@ class FileStreamWrapper
 
     /**
      * Close a resource.
+     *
      * @noinspection PhpUnused
      */
     public function stream_close(): void
@@ -310,9 +313,9 @@ class FileStreamWrapper
     /**
      * Change stream metadata.
      *
-     * @param string $path
-     * @param int $option
-     * @param mixed $value
+     * @param string                     $path
+     * @param int                        $option
+     * @param array<int|null>|string|int $value
      *
      * @return bool
      * @noinspection PhpUnused
@@ -324,24 +327,34 @@ class FileStreamWrapper
         $r = false;
         switch ($option) {
             case STREAM_META_TOUCH:
+                /** @var array<int|null> $value */
                 if (!isset($value[0]) || is_null($value[0])) {
                     $r = touch($path);
                 } else {
-                    $r = touch($path, $value[0], $value[1]);
+                    $r = touch($path, (int)$value[0], (int)$value[1]);
                 }
                 break;
 
             case STREAM_META_OWNER_NAME:
             case STREAM_META_OWNER:
+                if (!is_int($value) && !is_string($value)) {
+                    throw new InvalidArgumentException('Parameter #3 is expected to be an `int|string`.');
+                }
                 $r = chown($path, $value);
                 break;
 
             case STREAM_META_GROUP_NAME:
             case STREAM_META_GROUP:
+                if (!is_int($value) && !is_string($value)) {
+                    throw new InvalidArgumentException('Parameter #3 is expected to be an `int|string`.');
+                }
                 $r = chgrp($path, $value);
                 break;
 
             case STREAM_META_ACCESS:
+                if (!is_int($value)) {
+                    throw new InvalidArgumentException('Parameter #3 is expected to be an `int`.');
+                }
                 $r = chmod($path, $value);
                 break;
         }
@@ -355,9 +368,9 @@ class FileStreamWrapper
     /**
      * Open file or URL.
      *
-     * @param string $path
-     * @param string $mode
-     * @param int $options
+     * @param string      $path
+     * @param string      $mode
+     * @param int         $options
      * @param string|null $opened_path
      *
      * @return bool
@@ -616,7 +629,7 @@ class FileStreamWrapper
      * Retrieve information about a file.
      *
      * @param string $path
-     * @param int $flags
+     * @param int    $flags
      *
      * @return array<int|string, int>|false
      * @noinspection PhpUnused

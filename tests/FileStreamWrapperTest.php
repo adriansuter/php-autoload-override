@@ -11,6 +11,8 @@ declare(strict_types=1);
 namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\FileStreamWrapper;
+use InvalidArgumentException;
+use PHPUnit\Framework\IncompleteTestError;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use RuntimeException;
@@ -27,6 +29,8 @@ use function fseek;
 use function ftruncate;
 use function fwrite;
 use function is_dir;
+use function is_resource;
+use function is_string;
 use function lstat;
 use function mkdir;
 use function opendir;
@@ -47,6 +51,10 @@ use function tempnam;
 use function time;
 use function touch;
 use function unlink;
+
+use const STREAM_META_ACCESS;
+use const STREAM_META_GROUP;
+use const STREAM_META_OWNER;
 
 final class FileStreamWrapperTest extends TestCase
 {
@@ -71,10 +79,11 @@ final class FileStreamWrapperTest extends TestCase
 
     private function createTempFile(bool $registerWrapper = true): void
     {
-        $this->tempFilePath = tempnam(sys_get_temp_dir(), 'FSW');
-        if (false === $this->tempFilePath) {
+        $tempFilePath = tempnam(sys_get_temp_dir(), 'FSW');
+        if (false === $tempFilePath) {
             throw new RuntimeException('Temporary file could not be created');
         }
+        $this->tempFilePath = $tempFilePath;
 
         if ($registerWrapper) {
             $this->registerWrapper();
@@ -91,21 +100,24 @@ final class FileStreamWrapperTest extends TestCase
         $this->tempFilePath = null;
     }
 
-    public function testDir()
+    public function testDir(): void
     {
         $this->registerWrapper();
 
         $fp = opendir(__DIR__);
-        $this->assertTrue(\is_resource($fp));
+        $this->assertTrue(is_resource($fp));
+        if (!is_resource($fp)) {
+            throw new IncompleteTestError();
+        }
 
         $item = readdir($fp);
-        $this->assertTrue(\is_string($item));
+        $this->assertTrue(is_string($item));
 
         rewinddir($fp);
         closedir($fp);
     }
 
-    public function testDirOpenDirWithoutContext()
+    public function testDirOpenDirWithoutContext(): void
     {
         $fileStreamWrapper = new FileStreamWrapper();
         $this->assertTrue($fileStreamWrapper->dir_opendir(__DIR__, 0));
@@ -114,7 +126,7 @@ final class FileStreamWrapperTest extends TestCase
         $fileStreamWrapper->dir_closedir();
     }
 
-    public function testMkdirRenameRmdir()
+    public function testMkdirRenameRmdir(): void
     {
         $directory = sys_get_temp_dir() . '/fileStreamWrapper';
         $directory2 = sys_get_temp_dir() . '/fileStreamWrapper2';
@@ -134,7 +146,7 @@ final class FileStreamWrapperTest extends TestCase
         $this->assertTrue(rmdir($directory2));
     }
 
-    public function testMkdirRenameRmdirWithoutContext()
+    public function testMkdirRenameRmdirWithoutContext(): void
     {
         $directory = sys_get_temp_dir() . '/fileStreamWrapper';
         $directory2 = sys_get_temp_dir() . '/fileStreamWrapper2';
@@ -153,7 +165,7 @@ final class FileStreamWrapperTest extends TestCase
         $this->assertTrue($fileStreamWrapper->rmdir($directory2, 0));
     }
 
-    public function testStreamCast()
+    public function testStreamCast(): void
     {
         $fileStreamWrapper = new FileStreamWrapper();
         $this->assertFalse($fileStreamWrapper->stream_cast(0));
@@ -169,7 +181,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($resource);
     }
 
-    public function testTouch()
+    public function testTouch(): void
     {
         $this->createTempFile();
 
@@ -178,7 +190,7 @@ final class FileStreamWrapperTest extends TestCase
         $this->assertTrue(touch($this->tempFilePath, time(), time()));
     }
 
-    public function testChown()
+    public function testChown(): void
     {
         $this->createTempFile(false);
 
@@ -190,7 +202,7 @@ final class FileStreamWrapperTest extends TestCase
         $this->assertIsBool(chown($this->tempFilePath, $stat['uid']));
     }
 
-    public function testChgrp()
+    public function testChgrp(): void
     {
         $this->createTempFile(false);
 
@@ -202,14 +214,41 @@ final class FileStreamWrapperTest extends TestCase
         $this->assertIsBool(chgrp($this->tempFilePath, $stat['gid']));
     }
 
-    public function testChmod()
+    public function testChmod(): void
     {
         $this->createTempFile();
 
         $this->assertTrue(chmod($this->tempFilePath, 0755));
     }
 
-    public function testFlush()
+    public function testStreamMetaDataMetaOwnerWithInvalidThirdParameter(): void
+    {
+        $fileStreamWrapper = new FileStreamWrapper();
+        $this->createTempFile(false);
+
+        $this->expectException(InvalidArgumentException::class);
+        $fileStreamWrapper->stream_metadata((string)$this->tempFilePath, STREAM_META_OWNER, [null]);
+    }
+
+    public function testStreamMetaDataMetaGroupWithInvalidThirdParameter(): void
+    {
+        $fileStreamWrapper = new FileStreamWrapper();
+        $this->createTempFile(false);
+
+        $this->expectException(InvalidArgumentException::class);
+        $fileStreamWrapper->stream_metadata((string)$this->tempFilePath, STREAM_META_GROUP, [null]);
+    }
+
+    public function testStreamMetaDataMetaAccessWithInvalidThirdParameter(): void
+    {
+        $fileStreamWrapper = new FileStreamWrapper();
+        $this->createTempFile(false);
+
+        $this->expectException(InvalidArgumentException::class);
+        $fileStreamWrapper->stream_metadata((string)$this->tempFilePath, STREAM_META_ACCESS, [null]);
+    }
+
+    public function testFlush(): void
     {
         $this->createTempFile();
 
@@ -218,7 +257,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($fp);
     }
 
-    public function testSeek()
+    public function testSeek(): void
     {
         $this->createTempFile();
 
@@ -227,7 +266,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($fp);
     }
 
-    public function testTruncate()
+    public function testTruncate(): void
     {
         $this->createTempFile();
 
@@ -236,7 +275,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($fp);
     }
 
-    public function testWrite()
+    public function testWrite(): void
     {
         $this->createTempFile();
 
@@ -245,7 +284,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($fp);
     }
 
-    public function testLock()
+    public function testLock(): void
     {
         $this->createTempFile();
 
@@ -254,7 +293,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($fp);
     }
 
-    public function testSetOption()
+    public function testSetOption(): void
     {
         $this->createTempFile();
 
@@ -270,7 +309,7 @@ final class FileStreamWrapperTest extends TestCase
         fclose($fp);
     }
 
-    public function testUnlink()
+    public function testUnlink(): void
     {
         $this->createTempFile();
 
@@ -278,7 +317,7 @@ final class FileStreamWrapperTest extends TestCase
         $this->tempFilePath = null;
     }
 
-    public function testUrlStat()
+    public function testUrlStat(): void
     {
         $this->createTempFile();
 
