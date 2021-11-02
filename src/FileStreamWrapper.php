@@ -416,7 +416,8 @@ class FileStreamWrapper
     /**
      * Read from stream.
      *
-     * @param int $count
+     * @param int                $count
+     * @psalm-param positive-int $count
      *
      * @return string
      * @noinspection PhpUnused
