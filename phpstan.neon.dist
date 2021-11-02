@@ -1,6 +1,2 @@
 parameters:
     level: max
-    ignoreErrors:
-      - message: '/Parameter \#3 \$microseconds of function stream_set_timeout expects int, int\|null given./'
-        path: src/FileStreamWrapper.php
-        count: 1
