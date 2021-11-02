@@ -55,6 +55,7 @@ use function unlink;
 use const STREAM_META_ACCESS;
 use const STREAM_META_GROUP;
 use const STREAM_META_OWNER;
+use const STREAM_OPTION_READ_TIMEOUT;
 
 final class FileStreamWrapperTest extends TestCase
 {
@@ -307,6 +308,14 @@ final class FileStreamWrapperTest extends TestCase
         $this->assertIsNumeric(stream_set_write_buffer($fp, 0));
 
         fclose($fp);
+    }
+
+    public function testSetOptionInvalidArgument(): void
+    {
+        $fileStreamWrapper = new FileStreamWrapper();
+
+        $this->expectException(InvalidArgumentException::class);
+        $fileStreamWrapper->stream_set_option(STREAM_OPTION_READ_TIMEOUT, 1, null);
     }
 
     public function testUnlink(): void
