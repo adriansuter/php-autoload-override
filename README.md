@@ -5,10 +5,10 @@
 [![Total Downloads](https://poser.pugx.org/adriansuter/php-autoload-override/downloads)](https://packagist.org/packages/adriansuter/php-autoload-override)
 [![License](https://poser.pugx.org/adriansuter/php-autoload-override/license)](https://packagist.org/packages/adriansuter/php-autoload-override)
 
-This library allows to override fully qualified function calls inside your class methods in order to
+This library allows overriding fully qualified function calls inside your class methods in order to
 be able to mock them during testing.
 
-**NOTE: The library can be used for other scenarios as well. But we recommend to use it for testing purposes
+**NOTE: The library can be used for other scenarios as well. But we recommend using it for testing purposes
 only.**
 
 [PHP-Autoload-Override Website](https://adriansuter.github.io/php-autoload-override/)
@@ -16,7 +16,7 @@ only.**
 
 ## Requirements 
 
-- PHP 7.2 or later
+- PHP 7.3 or later
 - Composer with PSR-4 (PSR-0 is not supported)
 
 
