@@ -51,7 +51,7 @@
     ],
     "phpunit": "phpunit",
     "phpcs": "phpcs",
-    "phpstan": "phpstan analyse src --memory-limit=-1"
+    "phpstan": "phpstan analyse src --memory-limit=-1 --xdebug"
   },
   "config": {
     "sort-packages": true
