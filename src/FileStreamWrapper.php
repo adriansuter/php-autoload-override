@@ -329,6 +329,7 @@ class FileStreamWrapper
         switch ($option) {
             case STREAM_META_TOUCH:
                 /** @var array<int|null> $value */
+                /** @phpstan-ignore-next-line */
                 if (!isset($value[0]) || is_null($value[0])) {
                     $r = touch($path);
                 } else {
