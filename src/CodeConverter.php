@@ -20,6 +20,7 @@ use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 use PhpParser\Parser\Php7;
+use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 use RuntimeException;
 
@@ -42,11 +43,6 @@ class CodeConverter
     protected $parser;
 
     /**
-     * @var Lexer The PHP Lexer.
-     */
-    protected $lexer;
-
-    /**
      * @var NodeTraverser The PHP Node Traverser.
      */
     protected $traverser;
@@ -62,7 +58,6 @@ class CodeConverter
     protected $nodeFinder;
 
     /**
-     * @param Lexer|null $lexer The PHP Lexer.
      * @param Parser|null $parser The PHP Parser.
      * @param NodeTraverser|null $traverser The PHP Node Traverser - make sure that the traverser has a CloningVisitor
      *                                      and a NameResolver visitor.
@@ -70,15 +65,12 @@ class CodeConverter
      * @param NodeFinder|null $nodeFinder The PHP Node Finder.
      */
     public function __construct(
-        ?Lexer $lexer = null,
         ?Parser $parser = null,
         ?NodeTraverser $traverser = null,
         ?Standard $printer = null,
         ?NodeFinder $nodeFinder = null
     ) {
-        $this->lexer = $lexer ?? $this->defaultLexer();
-
-        $this->parser = $parser ?? new Php7($this->lexer);
+        $this->parser = $parser ?? (new ParserFactory())->createForNewestSupportedVersion();
 
         if ($traverser === null) {
             $traverser = new NodeTraverser();
@@ -90,18 +82,6 @@ class CodeConverter
         $this->printer = $printer ?? new Standard();
 
         $this->nodeFinder = $nodeFinder ?? new NodeFinder();
-    }
-
-    /**
-     * @return Lexer
-     */
-    private function defaultLexer(): Lexer
-    {
-        return new Emulative(
-            [
-                'usedAttributes' => ['comments', 'startLine', 'endLine', 'startTokenPos', 'endTokenPos'],
-            ]
-        );
     }
 
     /**
@@ -119,7 +99,7 @@ class CodeConverter
             throw new RuntimeException('Code could not be parsed.');
         }
 
-        $oldTokens = $this->lexer->getTokens();
+        $oldTokens = $this->parser->getTokens();
 
         $newStmts = $this->traverser->traverse($oldStmts);
 

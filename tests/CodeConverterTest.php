@@ -44,7 +44,7 @@ class CodeConverterTest extends TestCase
         /** @var Parser $parser */
         $parser = $parserProphecy->reveal();
 
-        $converter = new CodeConverter(null, $parser);
+        $converter = new CodeConverter($parser);
         $converter->convert('<?php echo "1";', []);
     }
 }
