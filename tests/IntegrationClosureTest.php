@@ -10,7 +10,20 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override\Tests;
 
-class IntegrationClosureTest extends AbstractIntegrationTest
+use AdrianSuter\Autoload\Override\AutoloadCollection;
+use AdrianSuter\Autoload\Override\ClosureHandler;
+use AdrianSuter\Autoload\Override\CodeConverter;
+use AdrianSuter\Autoload\Override\FileStreamWrapper;
+use AdrianSuter\Autoload\Override\Override;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
+
+#[CoversClass(Override::class)]
+#[UsesClass(AutoloadCollection::class)]
+#[UsesClass(ClosureHandler::class)]
+#[UsesClass(CodeConverter::class)]
+#[UsesClass(FileStreamWrapper::class)]
+class IntegrationClosureTest extends AbstractIntegrationTestCase
 {
     protected function getOverrideDeclarations(): array
     {
@@ -18,17 +31,14 @@ class IntegrationClosureTest extends AbstractIntegrationTest
             // Test that the class loader can find the file to that class.
             \My\Integration\TestClosureOverride\Clock::class => [
                 'time' => function () {
-
                     return 100;
                 },
                 'rand' => function (int $min, int $max): int {
-
                     return $min + $max;
                 }
             ],
             \My\Integration\TestClosureOverride\SubSpace\Digital::class => [
                 'rand' => function (int $min, int $max): int {
-
                     return 2 * ($min + $max);
                 }
             ],
@@ -36,7 +46,6 @@ class IntegrationClosureTest extends AbstractIntegrationTest
             // directory to the "TestClosureOverride" sub namespace.
             'My\\Integration\\TestClosureOverride\\' => [
                 'rand' => function (int $min, int $max): int {
-
                     return 3 * ($min + $max);
                 }
             ],
@@ -44,13 +53,11 @@ class IntegrationClosureTest extends AbstractIntegrationTest
             // directory to the "TestClosureOverride\SubSpace" sub namespace.
             'My\\Integration\\TestClosureOverride\\SubSpace\\' => [
                 'time' => function () {
-
                     return 101;
                 }
             ],
             \My\Integration\TestClosureOverride\OtherSpace\Other::class => [
                 'time' => function (): int {
-
                     return 102;
                 }
             ]

@@ -10,20 +10,31 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override\Tests;
 
-class IntegrationPsr4MultiDirTest extends AbstractIntegrationTest
+use AdrianSuter\Autoload\Override\AutoloadCollection;
+use AdrianSuter\Autoload\Override\ClosureHandler;
+use AdrianSuter\Autoload\Override\CodeConverter;
+use AdrianSuter\Autoload\Override\FileStreamWrapper;
+use AdrianSuter\Autoload\Override\Override;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
+
+#[CoversClass(Override::class)]
+#[UsesClass(AutoloadCollection::class)]
+#[UsesClass(ClosureHandler::class)]
+#[UsesClass(CodeConverter::class)]
+#[UsesClass(FileStreamWrapper::class)]
+class IntegrationPsr4MultiDirTest extends AbstractIntegrationTestCase
 {
     protected function getOverrideDeclarations(): array
     {
         return [
             \AdrianSuter\Autoload\Override\Science::class => [
                 'str_repeat' => function ($str, $multiplier) {
-
                     return \str_repeat($str, 2 * $multiplier);
                 }
             ],
             'AdrianSuter\\Autoload\\Override\\SubSpace\\' => [
                 'str_repeat' => function ($input, $multiplier) {
-
                     return ':';
                 }
             ],

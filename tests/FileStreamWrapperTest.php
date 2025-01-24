@@ -11,7 +11,10 @@ declare(strict_types=1);
 namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\FileStreamWrapper;
+use AdrianSuter\Autoload\Override\Override;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\IncompleteTestError;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
@@ -57,12 +60,14 @@ use const STREAM_META_GROUP;
 use const STREAM_META_OWNER;
 use const STREAM_OPTION_READ_TIMEOUT;
 
+#[CoversClass(FileStreamWrapper::class)]
+#[UsesClass(Override::class)]
 final class FileStreamWrapperTest extends TestCase
 {
     /**
      * @var string|null
      */
-    private $tempFilePath;
+    private ?string $tempFilePath = null;
 
     protected function tearDown(): void
     {

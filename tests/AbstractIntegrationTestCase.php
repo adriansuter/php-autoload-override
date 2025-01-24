@@ -11,13 +11,14 @@ declare(strict_types=1);
 namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\Override;
+use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\TestCase;
 
-abstract class AbstractIntegrationTest extends TestCase
+abstract class AbstractIntegrationTestCase extends TestCase
 {
-    private $overrideApplied = false;
+    private bool $overrideApplied = false;
 
-    private static $classLoader;
+    private static ClassLoader $classLoader;
 
     public static function setUpBeforeClass(): void
     {

@@ -12,12 +12,14 @@ namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\CodeConverter;
 use PhpParser\Parser;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\MethodProphecy;
 use RuntimeException;
 
+#[CoversClass(CodeConverter::class)]
 class CodeConverterTest extends TestCase
 {
     use ProphecyTrait;

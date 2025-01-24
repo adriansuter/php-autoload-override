@@ -10,7 +10,18 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override\Tests;
 
-class IntegrationNamespaceTest extends AbstractIntegrationTest
+use AdrianSuter\Autoload\Override\AutoloadCollection;
+use AdrianSuter\Autoload\Override\CodeConverter;
+use AdrianSuter\Autoload\Override\FileStreamWrapper;
+use AdrianSuter\Autoload\Override\Override;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
+
+#[CoversClass(Override::class)]
+#[UsesClass(AutoloadCollection::class)]
+#[UsesClass(CodeConverter::class)]
+#[UsesClass(FileStreamWrapper::class)]
+class IntegrationNamespaceTest extends AbstractIntegrationTestCase
 {
     public static function setUpBeforeClass(): void
     {

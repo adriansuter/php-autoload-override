@@ -1,6 +1,6 @@
 .DS_Store
 .idea
-.phpunit.result.cache
+.phpunit.cache
 composer.lock
 coverage
 docs/_site

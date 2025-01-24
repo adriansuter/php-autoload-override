@@ -11,9 +11,13 @@ declare(strict_types=1);
 namespace AdrianSuter\Autoload\Override\Tests;
 
 use AdrianSuter\Autoload\Override\AutoloadCollection;
+use AdrianSuter\Autoload\Override\ClosureHandler;
 use AdrianSuter\Autoload\Override\CodeConverter;
 use AdrianSuter\Autoload\Override\Override;
 use Composer\Autoload\ClassLoader;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -22,9 +26,9 @@ use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
 
-/**
- * @runTestsInSeparateProcesses
- */
+#[CoversClass(Override::class)]
+#[UsesClass(AutoloadCollection::class)]
+#[RunTestsInSeparateProcesses]
 class OverrideTest extends TestCase
 {
     use ProphecyTrait;
