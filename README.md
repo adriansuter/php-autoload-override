@@ -16,7 +16,7 @@ only.**
 
 ## Requirements 
 
-- PHP 8.0 or later
+- PHP 8.2 or later
 - Composer with PSR-4 (PSR-0 is not supported)
 
 
