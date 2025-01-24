@@ -4,10 +4,10 @@
 ### Supported Versions
 
 | Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
+|---------| ------------------ |
+| 2.x.x   | :white_check_mark: |
 
 
 ### Reporting a Vulnerability
 
-To report a vulnerability please send an email to adrian@suter-wirz.ch
+To report a vulnerability please email adrian@suter-wirz.ch.
