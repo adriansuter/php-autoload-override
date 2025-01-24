@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 namespace AdrianSuter\Autoload\Override;
 
-use PhpParser\Lexer;
-use PhpParser\Lexer\Emulative;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\NodeFinder;
@@ -19,13 +17,13 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
-use PhpParser\Parser\Php7;
 use PhpParser\ParserFactory;
 use PhpParser\PrettyPrinter\Standard;
 use RuntimeException;
 
 use function array_keys;
 use function array_values;
+use function is_null;
 use function md5;
 use function str_replace;
 use function uniqid;
@@ -37,25 +35,13 @@ class CodeConverter
 {
     private const ATTR_RESOLVED_NAME = 'resolvedName';
 
-    /**
-     * @var Parser The PHP Parser.
-     */
-    protected $parser;
+    protected Parser $parser;
 
-    /**
-     * @var NodeTraverser The PHP Node Traverser.
-     */
-    protected $traverser;
+    protected NodeTraverser $traverser;
 
-    /**
-     * @var Standard The PHP Printer.
-     */
-    protected $printer;
+    protected Standard $printer;
 
-    /**
-     * @var NodeFinder The PHP Node Finder.
-     */
-    protected $nodeFinder;
+    protected NodeFinder $nodeFinder;
 
     /**
      * @param Parser|null $parser The PHP Parser.
@@ -72,7 +58,7 @@ class CodeConverter
     ) {
         $this->parser = $parser ?? (new ParserFactory())->createForNewestSupportedVersion();
 
-        if ($traverser === null) {
+        if (is_null($traverser)) {
             $traverser = new NodeTraverser();
             $traverser->addVisitor(new CloningVisitor());
             $traverser->addVisitor(new NameResolver(null, ['replaceNodes' => false]));
