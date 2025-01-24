@@ -11,14 +11,14 @@ only.**
 
 # Requirements
 
-- PHP 7.3 or later
+- PHP 8.2 or later
 - Composer with PSR-4 (PSR-0 is not supported)
 
 
 # Installation
 
 ```bash
-$ composer require --dev adriansuter/php-autoload-override 1.5
+$ composer require --dev adriansuter/php-autoload-override 2.0
 ```
 
 
