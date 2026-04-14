@@ -12,7 +12,7 @@
          failOnPhpunitDeprecation="true"
          failOnWarning="true">
     <php>
-        <ini name="opcache.enable_cli" value="0"/>
+        <!-- <ini name="opcache.enable_cli" value="0"/> -->
     </php>
 
     <testsuites>
