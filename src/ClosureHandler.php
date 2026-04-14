@@ -13,6 +13,7 @@ namespace AdrianSuter\Autoload\Override;
 use Closure;
 use RuntimeException;
 
+use function array_values;
 use function call_user_func_array;
 use function sprintf;
 
@@ -23,15 +24,11 @@ use function sprintf;
  */
 class ClosureHandler
 {
-    /**
-     * @var self The singleton instance.
-     */
-    private static $instance;
+    /** @var self|null The singleton instance. */
+    private static ?ClosureHandler $instance = null;
 
-    /**
-     * @var Closure[] A list of closures.
-     */
-    private $closures = [];
+    /** @var array<string, Closure> A list of closures. */
+    private array $closures = [];
 
     /**
      * Get the singleton instance.
@@ -64,7 +61,7 @@ class ClosureHandler
      * Magic call.
      *
      * @param string $name The method name.
-     * @param array<mixed> $arguments The method arguments.
+     * @param array<int|string, mixed> $arguments The method arguments.
      *
      * @return mixed
      */
@@ -73,7 +70,7 @@ class ClosureHandler
         if (isset($this->closures[$name])) {
             return call_user_func_array(
                 $this->closures[$name],
-                $arguments
+                array_values($arguments)
             );
         }
 
