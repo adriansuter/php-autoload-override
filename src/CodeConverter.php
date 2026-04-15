@@ -91,13 +91,10 @@ class CodeConverter
         $funcCalls = $this->nodeFinder->findInstanceOf($newStmts, FuncCall::class);
         foreach ($funcCalls as $funcCall) {
             /** @var FuncCall $funcCall */
-            if (!$funcCall->name->hasAttribute(self::ATTR_RESOLVED_NAME)) {
-                // This function call has no resolved fully qualified name.
+            $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
+            if (!$resolvedName instanceof FullyQualified) {
                 continue;
             }
-
-            /** @var FullyQualified $resolvedName */
-            $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
 
             $resolvedNameCode = $resolvedName->toCodeString();
             if (isset($functionCallMap[$resolvedNameCode])) {
@@ -118,7 +115,7 @@ class CodeConverter
         $code = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
         // Return the source code if there are no override placeholders.
-        if (empty($overridePlaceholders)) {
+        if ($overridePlaceholders === []) {
             return $code;
         }
 
