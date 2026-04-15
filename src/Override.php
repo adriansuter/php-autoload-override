@@ -30,8 +30,6 @@ use function spl_object_hash;
 use function stream_wrapper_register;
 use function stream_wrapper_restore;
 use function stream_wrapper_unregister;
-use function strlen;
-use function substr;
 use function trim;
 
 /**
@@ -42,17 +40,17 @@ class Override
     /**
      * @var array<string, array<string, string>>
      */
-    private static $fileFunctionCallMap;
+    private static array $fileFunctionCallMap = [];
 
     /**
      * @var array<string, array<string, string>>
      */
-    private static $dirFunctionCallMap;
+    private static array $dirFunctionCallMap = [];
 
     /**
      * @var CodeConverter|null
      */
-    private static $converter;
+    private static ?CodeConverter $converter = null;
 
 
     /**
@@ -105,7 +103,7 @@ class Override
             // Build the fqn function call map.
             $fqnFunctionCallMap = self::buildFunctionCallMap($map, $overrideNamespace);
 
-            if (substr($fqn, -1, 1) === '\\') {
+            if (str_ends_with($fqn, '\\')) {
                 // The given fqn is a namespace.
                 $prefixesPsr4 = $classLoader->getPrefixesPsr4();
 
@@ -136,7 +134,7 @@ class Override
                 }
 
                 foreach ($classLoader->getClassMap() as $classMapFqn => $classMapPath) {
-                    if (substr($classMapFqn, 0, strlen($fqn)) === $fqn) {
+                    if (str_starts_with($classMapFqn, $fqn)) {
                         $p = realpath($classMapPath);
                         if ($p === false) {
                             continue;
@@ -178,14 +176,16 @@ class Override
 
         // Load the classes that are affected by the FQFC-override converter.
         stream_wrapper_unregister('file');
-        stream_wrapper_register('file', FileStreamWrapper::class);
-        foreach ($autoloadCollection->getFilePaths() as $filePath) {
-            /** @noinspection PhpIncludeInspection */
-            include_once $filePath;
-        }
+        try {
+            stream_wrapper_register('file', FileStreamWrapper::class);
 
-        stream_wrapper_restore('file');
-        clearstatcache();
+            foreach ($autoloadCollection->getFilePaths() as $filePath) {
+                include_once $filePath;
+            }
+        } finally {
+            stream_wrapper_restore('file');
+            clearstatcache();
+        }
     }
 
     /**
