@@ -89,7 +89,9 @@ class Override
 
         // Make sure that the stream wrapper class is loaded.
         if (!class_exists(FileStreamWrapper::class)) {
+            // @codeCoverageIgnoreStart
             $classLoader->loadClass(FileStreamWrapper::class);
+            // @codeCoverageIgnoreEnd
         }
 
         // Reset the function call maps.
@@ -137,7 +139,9 @@ class Override
                     if (str_starts_with($classMapFqn, $fqn)) {
                         $p = realpath($classMapPath);
                         if ($p === false) {
+                            // @codeCoverageIgnoreStart
                             continue;
+                            // @codeCoverageIgnoreEnd
                         }
 
                         if (isset(self::$fileFunctionCallMap[$p])) {
