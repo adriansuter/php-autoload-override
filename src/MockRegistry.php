@@ -111,6 +111,9 @@ final class MockRegistry
         self::$global = [];
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     private function __construct()
     {
     }
