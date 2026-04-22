@@ -150,46 +150,59 @@ class Probability
 }
 ```
 
-The class has one method `pick` that takes a probability (between 0 and 100) and two color names as arguments.
-The method would then use the `rand` function of the global scope to generate a random number and
-if the generated number is smaller equal to the given probability, then the method would return
-the first color, otherwise the method would return the second color.
+The class uses `\rand()` from the global scope. Because we cannot control its output, we cannot
+test `pick()` deterministically — until we override it.
 
-Open the bootstrap script of your test suite (see also
-[PHPUnit Configuration](https://phpunit.readthedocs.io/en/latest/configuration.html#the-bootstrap-attribute))
-and register the override using `MockRegistry`:
+## Setting up the bootstrap
+
+Open the [bootstrap script](https://phpunit.readthedocs.io/en/latest/configuration.html#the-bootstrap-attribute)
+of your test suite and register the override. The recommended approach uses `OverrideFactory`:
 
 ```php
 // tests/bootstrap.php
 
-use AdrianSuter\Autoload\Override\MockRegistry;
-use AdrianSuter\Autoload\Override\Override;
+use AdrianSuter\Autoload\Override\OverrideFactory;
 use My\App\Probability;
 
 /** @var \Composer\Autoload\ClassLoader $classLoader */
 $classLoader = require_once __DIR__ . '/../vendor/autoload.php';
 
-Override::apply($classLoader, [
-    Probability::class => [
-        'rand' => function (int $min, int $max): int {
-            return MockRegistry::get(Probability::class, 'rand', \rand($min, $max));
-        }
-    ]
-]);
+OverrideFactory::create()
+    ->forClass(Probability::class, ['rand' => \rand(...)])
+    ->apply($classLoader);
 ```
 
-`MockRegistry::get()` resolves in this order: per-class override → global fallback → `$default`.
-When no override is set the real `\rand()` is called, so non-test code is unaffected.
+Each entry in `forClass()` maps a function name to its real implementation, written as a
+[first-class callable](https://www.php.net/manual/en/functions.first_class_callable_syntax.php).
+`OverrideFactory` generates the override closure automatically: when a test sets a mock value via
+`MockRegistry::set()`, that value is returned; otherwise the real `\rand()` is called. No mock
+value is registered initially, so non-test code is unaffected.
 
-> **Note:** Using `$GLOBALS` inside override closures still works and remains fully supported.
-> `MockRegistry` is a cleaner alternative, not a replacement — existing code does not need to be
-> migrated.
+For multiple classes, chain `forClass()` calls:
 
-Now the class `Probability` would be loaded into the PHPUnit runtime such that all function calls
-to the global scoped `rand()` function in the class `Probability` get overridden by the closure
-given above.
+```php
+OverrideFactory::create()
+    ->forClass(Clock::class,       ['time' => \time(...)])
+    ->forClass(Probability::class, ['rand' => \rand(...)])
+    ->apply($classLoader);
+```
 
-Our test class can now be written as follows.
+If you need the raw declarations array instead (e.g. for an `AbstractIntegrationTestCase`),
+use `build()` instead of `apply()`:
+
+```php
+protected function getOverrideDeclarations(): array
+{
+    return OverrideFactory::create()
+        ->forClass(Probability::class, ['rand' => \rand(...)])
+        ->build();
+}
+```
+
+## Writing the test
+
+Set a mock value with `MockRegistry::set()` before calling the code under test, and reset it in
+`tearDown()` so it does not affect other tests:
 
 ```php
 namespace My\App\Tests;
@@ -226,61 +239,51 @@ final class ProbabilityTest extends TestCase
 }
 ```
 
-`MockRegistry::reset(Probability::class)` in `tearDown()` ensures overrides never leak between
-tests. Call `MockRegistry::reset()` without arguments to clear everything at once.
+`MockRegistry::reset(Probability::class)` clears only the overrides for that class. Call
+`MockRegistry::reset()` without arguments to clear all registered overrides at once.
 
-The two tests cover both branches of `pick()` with a controlled `\rand()` return value of 35.
-Note that this override would only be applied during the unit tests.
+Note that these overrides are only applied during the unit tests.
 
-## Using `OverrideFactory` (recommended shorthand)
+## Sharing an override across multiple classes
 
-For most test suites, `OverrideFactory` reduces the bootstrap to a concise fluent declaration.
-It wraps `MockRegistry::closures()` internally and passes the result directly to `Override::apply()`:
+`MockRegistry::set()` registers an override for one specific class. To register a fallback that
+applies to every class, use `setGlobal()`:
+
+```php
+MockRegistry::setGlobal('time', 1574333284);
+```
+
+If a class also has a per-class override for the same function, the per-class value takes
+priority. Reset only the global overrides with `MockRegistry::resetGlobal()`.
+
+## Using `Override::apply()` directly
+
+If you register overrides via `Override::apply()` directly rather than using `OverrideFactory`,
+you write the closure yourself. `MockRegistry::get()` takes three arguments: the class name, the
+function name, and a default that is returned when no mock is registered:
 
 ```php
 // tests/bootstrap.php
 
-use AdrianSuter\Autoload\Override\OverrideFactory;
+use AdrianSuter\Autoload\Override\MockRegistry;
+use AdrianSuter\Autoload\Override\Override;
 use My\App\Probability;
 
 /** @var \Composer\Autoload\ClassLoader $classLoader */
 $classLoader = require_once __DIR__ . '/../vendor/autoload.php';
 
-OverrideFactory::create()
-    ->forClass(Probability::class, ['rand' => \rand(...)])
-    ->apply($classLoader);
+Override::apply($classLoader, [
+    Probability::class => [
+        'rand' => function (int $min, int $max): int {
+            return MockRegistry::get(Probability::class, 'rand', \rand($min, $max));
+        }
+    ]
+]);
 ```
 
-Each value in the `forClass()` array is the real fallback implementation as a
-[first-class callable](https://www.php.net/manual/en/functions.first_class_callable_syntax.php)
-(`\rand(...)`). The generated closure uses the lazy pattern automatically — the real `\rand()` is
-only called when no `MockRegistry` entry is set.
-
-For multiple classes:
-
-```php
-OverrideFactory::create()
-    ->forClass(Clock::class,       ['time' => \time(...)])
-    ->forClass(Probability::class, ['rand' => \rand(...)])
-    ->apply($classLoader);
-```
-
-If you need the raw declarations array (e.g. for an `AbstractIntegrationTestCase`), use `build()`
-instead of `apply()`:
-
-```php
-protected function getOverrideDeclarations(): array
-{
-    return OverrideFactory::create()
-        ->forClass(Probability::class, ['rand' => \rand(...)])
-        ->build();
-}
-```
-
-## When the fallback has side effects
-
-`MockRegistry::get()` evaluates `$default` eagerly. If the real function has side effects or is
-expensive, use `has()` to guard it:
+Be aware that the third argument — `\rand($min, $max)` — is evaluated on every call, even when a
+mock value is set. This is harmless for `\rand()`, but if the real function is expensive or has
+side effects that must be avoided when a mock is active, guard the call with `MockRegistry::has()`:
 
 ```php
 'rand' => function (int $min, int $max): int {
@@ -291,16 +294,9 @@ expensive, use `has()` to guard it:
 }
 ```
 
-## Sharing an override across multiple classes
-
-Use `setGlobal()` to set a fallback that applies to every class:
-
-```php
-// Applies to all classes unless a per-class override takes precedence
-MockRegistry::setGlobal('time', 1574333284);
-```
-
-Reset only the global overrides with `MockRegistry::resetGlobal()`.
+> **Note:** Using `$GLOBALS` inside override closures still works and remains fully supported.
+> `MockRegistry` is a cleaner alternative, not a replacement — existing code does not need to be
+> migrated.
 
 # Caching Limitations
 
