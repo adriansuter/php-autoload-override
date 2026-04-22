@@ -126,6 +126,51 @@ final class ProbabilityTest extends TestCase
 `MockRegistry::reset(Probability::class)` in `tearDown()` ensures overrides never leak between
 tests. Call `MockRegistry::reset()` without arguments to clear everything at once.
 
+### Using `OverrideFactory` (recommended shorthand)
+
+For most test suites, `OverrideFactory` reduces the bootstrap to a concise fluent declaration.
+It wraps `MockRegistry::closures()` internally and passes the result directly to `Override::apply()`:
+
+```php
+// tests/bootstrap.php
+
+use AdrianSuter\Autoload\Override\OverrideFactory;
+use My\App\Probability;
+
+/** @var \Composer\Autoload\ClassLoader $classLoader */
+$classLoader = require_once __DIR__ . '/../vendor/autoload.php';
+
+OverrideFactory::create()
+    ->forClass(Probability::class, ['rand' => \rand(...)])
+    ->apply($classLoader);
+```
+
+Each value in the `forClass()` array is the real fallback implementation as a
+[first-class callable](https://www.php.net/manual/en/functions.first_class_callable_syntax.php)
+(`\rand(...)`). The generated closure uses the lazy pattern automatically — the real `\rand()` is
+only called when no `MockRegistry` entry is set.
+
+For multiple classes:
+
+```php
+OverrideFactory::create()
+    ->forClass(Clock::class,       ['time' => \time(...)])
+    ->forClass(Probability::class, ['rand' => \rand(...)])
+    ->apply($classLoader);
+```
+
+If you need the raw declarations array (e.g. for an `AbstractIntegrationTestCase`), use `build()`
+instead of `apply()`:
+
+```php
+protected function getOverrideDeclarations(): array
+{
+    return OverrideFactory::create()
+        ->forClass(Probability::class, ['rand' => \rand(...)])
+        ->build();
+}
+```
+
 ### When the fallback has side effects
 
 `MockRegistry::get()` evaluates `$default` eagerly. If the real function has side effects or is
