@@ -13,6 +13,7 @@ namespace AdrianSuter\Autoload\Override\Tests;
 use AdrianSuter\Autoload\Override\ClosureHandler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use RuntimeException;
 
 #[CoversClass(ClosureHandler::class)]
@@ -41,5 +42,16 @@ final class ClosureHandlerTest extends TestCase
 
         /** @noinspection PhpUndefinedMethodInspection */
         $closureHandler->thisIsNotDefined();
+    }
+
+    public function testGetInstanceCreatesInstance(): void
+    {
+        $reflection = new ReflectionClass(ClosureHandler::class);
+        $property = $reflection->getProperty('instance');
+        $property->setValue(null, null);
+
+        $instance = ClosureHandler::getInstance();
+
+        $this->assertInstanceOf(ClosureHandler::class, $instance);
     }
 }

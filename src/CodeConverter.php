@@ -23,10 +23,7 @@ use RuntimeException;
 
 use function array_keys;
 use function array_values;
-use function is_null;
-use function md5;
 use function str_replace;
-use function uniqid;
 
 /**
  * @package AdrianSuter\Autoload\Override
@@ -58,7 +55,7 @@ class CodeConverter
     ) {
         $this->parser = $parser ?? (new ParserFactory())->createForNewestSupportedVersion();
 
-        if (is_null($traverser)) {
+        if ($traverser === null) {
             $traverser = new NodeTraverser();
             $traverser->addVisitor(new CloningVisitor());
             $traverser->addVisitor(new NameResolver(null, ['replaceNodes' => false]));
@@ -81,7 +78,7 @@ class CodeConverter
     public function convert(string $code, array $functionCallMap): string
     {
         $oldStmts = $this->parser->parse($code);
-        if (is_null($oldStmts)) {
+        if ($oldStmts === null) {
             throw new RuntimeException('Code could not be parsed.');
         }
 
@@ -94,18 +91,15 @@ class CodeConverter
         $funcCalls = $this->nodeFinder->findInstanceOf($newStmts, FuncCall::class);
         foreach ($funcCalls as $funcCall) {
             /** @var FuncCall $funcCall */
-            if (!$funcCall->name->hasAttribute(self::ATTR_RESOLVED_NAME)) {
-                // This function call has no resolved fully qualified name.
+            $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
+            if (!$resolvedName instanceof FullyQualified) {
                 continue;
             }
-
-            /** @var FullyQualified $resolvedName */
-            $resolvedName = $funcCall->name->getAttribute(self::ATTR_RESOLVED_NAME);
 
             $resolvedNameCode = $resolvedName->toCodeString();
             if (isset($functionCallMap[$resolvedNameCode])) {
                 // There is a function call map > Create a unique key.
-                $key = uniqid(md5($resolvedNameCode), true);
+                $key = '__override_' . spl_object_id($funcCall);
 
                 // Put the key into the overridePlaceholders array as at the end we need to
                 // replace those keys with the corresponding target function call.
@@ -121,7 +115,7 @@ class CodeConverter
         $code = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
         // Return the source code if there are no override placeholders.
-        if (empty($overridePlaceholders)) {
+        if ($overridePlaceholders === []) {
             return $code;
         }
 

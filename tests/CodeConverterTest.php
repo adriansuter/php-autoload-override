@@ -14,16 +14,11 @@ use AdrianSuter\Autoload\Override\CodeConverter;
 use PhpParser\Parser;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
-use Prophecy\Prophecy\MethodProphecy;
 use RuntimeException;
 
 #[CoversClass(CodeConverter::class)]
 class CodeConverterTest extends TestCase
 {
-    use ProphecyTrait;
-
     public function testConvert(): void
     {
         $converter = new CodeConverter();
@@ -38,15 +33,34 @@ class CodeConverterTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Code could not be parsed.');
 
-        $parserProphecy = $this->prophesize(Parser::class);
-
-        $parseProphecy = new MethodProphecy($parserProphecy, 'parse', [Argument::any()]);
-        $parseProphecy->willReturn(null);
-
-        /** @var Parser $parser */
-        $parser = $parserProphecy->reveal();
+        $parser = $this->createMock(Parser::class);
+        $parser->method('parse')->willReturn(null);
 
         $converter = new CodeConverter($parser);
         $converter->convert('<?php echo "1";', []);
+    }
+
+    public function testContinueBranchWhenNotFullyQualified(): void
+    {
+        $code = <<<'PHP'
+<?php
+$func = 'rand';
+echo $func(1, 2);
+PHP;
+
+        $converter = new CodeConverter();
+        $result = $converter->convert($code, ['\rand' => 'foo\rand']);
+
+        $this->assertStringContainsString('$func(1, 2)', $result);
+    }
+
+    public function testReturnOriginalCodeWhenNoOverrides(): void
+    {
+        $code = '<?php echo strlen("abc");';
+
+        $converter = new CodeConverter();
+        $result = $converter->convert($code, ['\rand' => 'foo\rand']);
+
+        $this->assertSame($code, $result);
     }
 }

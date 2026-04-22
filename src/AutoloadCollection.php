@@ -22,9 +22,9 @@ use function realpath;
 class AutoloadCollection
 {
     /**
-     * @var bool[] The keys of this associative array are the file paths.
+     * @var array<string, bool> The keys of this associative array are the file paths.
      */
-    private $filePaths = [];
+    private array $filePaths = [];
 
     /**
      * Add a file to the autoload collection.
