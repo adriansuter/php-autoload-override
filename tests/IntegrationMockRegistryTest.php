@@ -16,6 +16,7 @@ use AdrianSuter\Autoload\Override\CodeConverter;
 use AdrianSuter\Autoload\Override\FileStreamWrapper;
 use AdrianSuter\Autoload\Override\MockRegistry;
 use AdrianSuter\Autoload\Override\Override;
+use AdrianSuter\Autoload\Override\OverrideFactory;
 use My\Integration\TestMockRegistry\Planet;
 use My\Integration\TestMockRegistry\Star;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -24,9 +25,10 @@ use PHPUnit\Framework\Attributes\UsesClass;
 #[CoversClass(Override::class)]
 #[CoversClass(MockRegistry::class)]
 #[UsesClass(AutoloadCollection::class)]
+#[UsesClass(ClosureHandler::class)]
 #[UsesClass(CodeConverter::class)]
 #[UsesClass(FileStreamWrapper::class)]
-#[UsesClass(ClosureHandler::class)]
+#[UsesClass(OverrideFactory::class)]
 class IntegrationMockRegistryTest extends AbstractIntegrationTestCase
 {
     protected function tearDown(): void
@@ -37,29 +39,15 @@ class IntegrationMockRegistryTest extends AbstractIntegrationTestCase
 
     protected function getOverrideDeclarations(): array
     {
-        return [
-            // Eager fallback pattern: $default is evaluated immediately.
-            // Safe when the real function has no relevant side effects.
-            Planet::class => [
-                'time' => function (): int {
-                    return MockRegistry::get(Planet::class, 'time', \time());
-                },
-                // Lazy fallback pattern: real \rand() is only called when no
-                // override is set, avoiding an unwanted side effect.
-                'rand' => function (int $min, int $max): int {
-                    if (MockRegistry::has(Planet::class, 'rand')) {
-                        return MockRegistry::get(Planet::class, 'rand');
-                    }
-                    return \rand($min, $max);
-                },
-            ],
-            // Star only declares \time(), resolved via global MockRegistry fallback.
-            Star::class => [
-                'time' => function (): int {
-                    return MockRegistry::get(Star::class, 'time', \time());
-                },
-            ],
-        ];
+        return OverrideFactory::create()
+            ->forClass(Planet::class, [
+                'time' => \time(...),
+                'rand' => \rand(...),
+            ])
+            ->forClass(Star::class, [
+                'time' => \time(...),
+            ])
+            ->build();
     }
 
     public function testPerClassOverrideForTime(): void

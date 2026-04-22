@@ -112,8 +112,39 @@ final class MockRegistry
     }
 
     /**
-     * @codeCoverageIgnore
+     * Generate Override-ready closures for a class, backed by MockRegistry.
+     *
+     * Each closure uses the lazy pattern: the fallback is only invoked when
+     * no MockRegistry override is set for that class and function name.
+     * Pass real implementations as first-class callables:
+     *
+     *   MockRegistry::closures(Planet::class, [
+     *       'time' => \time(...),
+     *       'rand' => \rand(...),
+     *   ])
+     *
+     * Typically called internally by OverrideFactory — use that for bootstrap
+     * scripts; call this directly only when you need the closures array without
+     * the full builder API.
+     *
+     * @param class-string $className
+     * @param array<string, callable> $fallbacks function name => real implementation
+     * @return array<string, \Closure>
      */
+    public static function closures(string $className, array $fallbacks): array
+    {
+        $closures = [];
+        foreach ($fallbacks as $functionName => $fallback) {
+            $closures[$functionName] = static function () use ($className, $functionName, $fallback) {
+                if (MockRegistry::has($className, $functionName)) {
+                    return MockRegistry::get($className, $functionName);
+                }
+                return $fallback(...func_get_args());
+            };
+        }
+        return $closures;
+    }
+
     private function __construct()
     {
     }
