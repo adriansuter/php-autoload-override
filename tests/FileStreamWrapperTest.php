@@ -182,7 +182,6 @@ final class FileStreamWrapperTest extends TestCase
         $resource = fopen('php://temp', 'r+');
 
         $prop = new ReflectionProperty(FileStreamWrapper::class, 'resource');
-        $prop->setAccessible(true);
         $prop->setValue($fileStreamWrapper, $resource);
 
         $this->assertEquals($resource, $fileStreamWrapper->stream_cast(0));

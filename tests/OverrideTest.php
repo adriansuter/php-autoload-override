@@ -13,6 +13,7 @@ namespace AdrianSuter\Autoload\Override\Tests;
 use AdrianSuter\Autoload\Override\AutoloadCollection;
 use AdrianSuter\Autoload\Override\ClosureHandler;
 use AdrianSuter\Autoload\Override\CodeConverter;
+use AdrianSuter\Autoload\Override\FileStreamWrapper;
 use AdrianSuter\Autoload\Override\Override;
 use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,6 +30,8 @@ use RuntimeException;
 
 #[CoversClass(Override::class)]
 #[UsesClass(AutoloadCollection::class)]
+#[UsesClass(CodeConverter::class)]
+#[UsesClass(FileStreamWrapper::class)]
 #[RunTestsInSeparateProcesses]
 class OverrideTest extends TestCase
 {
@@ -36,12 +39,11 @@ class OverrideTest extends TestCase
 
     public function testSetCodeConverter()
     {
-        $converter = $this->createMock(CodeConverter::class);
+        $converter = $this->createStub(CodeConverter::class);
 
         Override::setCodeConverter($converter);
 
         $converterReflectionProperty = new ReflectionProperty(Override::class, 'converter');
-        $converterReflectionProperty->setAccessible(true);
         $this->assertEquals($converter, $converterReflectionProperty->getValue());
     }
 
@@ -161,7 +163,6 @@ class OverrideTest extends TestCase
     public function testAddDirectoryFunctionCallMapOfNonExistentDirectory()
     {
         $reflectionMethod = new ReflectionMethod(Override::class, 'addDirectoryFunctionCallMap');
-        $reflectionMethod->setAccessible(true);
 
         $autoloadCollection = new AutoloadCollection();
         $reflectionMethod->invoke(null, $autoloadCollection, __DIR__ . '/this-does-not-exist', []);
@@ -171,7 +172,6 @@ class OverrideTest extends TestCase
     public function testAddDirectoryFunctionCallMapMergeArray()
     {
         $reflectionProperty = new ReflectionProperty(Override::class, 'dirFunctionCallMap');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue(
             null,
             [
@@ -180,7 +180,6 @@ class OverrideTest extends TestCase
         );
 
         $reflectionMethod = new ReflectionMethod(Override::class, 'addDirectoryFunctionCallMap');
-        $reflectionMethod->setAccessible(true);
 
         $autoloadCollection = new AutoloadCollection();
         $reflectionMethod->invoke(null, $autoloadCollection, __DIR__, ['\sin' => '3', '\tan' => '4']);

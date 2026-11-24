@@ -33,7 +33,7 @@ class CodeConverterTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Code could not be parsed.');
 
-        $parser = $this->createMock(Parser::class);
+        $parser = $this->createStub(Parser::class);
         $parser->method('parse')->willReturn(null);
 
         $converter = new CodeConverter($parser);
