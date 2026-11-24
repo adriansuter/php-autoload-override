@@ -25,6 +25,7 @@ use function file_get_contents;
 use function fopen;
 use function fseek;
 use function fstat;
+use function ftell;
 use function ftruncate;
 use function fwrite;
 use function is_int;
@@ -557,7 +558,10 @@ class FileStreamWrapper
 
         $r = -1;
         if (is_resource($this->resource)) {
-            $r = fseek($this->resource, 0, SEEK_CUR);
+            $position = ftell($this->resource);
+            if ($position !== false) {
+                $r = $position;
+            }
         }
 
         stream_wrapper_unregister('file');

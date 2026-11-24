@@ -11,8 +11,7 @@ declare(strict_types=1);
 namespace My\Integration\TestClassMapOverride\SubNamespace;
 
 /**
- * Overrides declared for
- * - \cos() : FQNS
+ * No overrides apply: the FQNS-declaration of the parent namespace does not affect sub-namespaces.
  *
  * @package My\Integration\TestClassMapOverride\SubNamespace
  */

@@ -53,8 +53,8 @@ class IntegrationClassMapTest extends AbstractIntegrationTestCase
     {
         $geometry = new \My\Integration\TestClassMapOverride\SubNamespace\Geometry();
 
-        // Calls \cos() > Overridden by FQNS-declaration.
-        $this->assertEquals(1, $geometry->cos(0.5));
+        // Calls \cos() > Not overridden, as sub-namespaces are not affected by FQNS-declarations.
+        $this->assertEquals(\cos(0.5), $geometry->cos(0.5));
     }
 
     public function testOtherCalculator(): void

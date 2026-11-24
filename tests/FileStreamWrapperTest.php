@@ -27,8 +27,11 @@ use function closedir;
 use function fclose;
 use function fflush;
 use function file_exists;
+use function file_put_contents;
 use function fopen;
+use function fread;
 use function fseek;
+use function ftell;
 use function ftruncate;
 use function fwrite;
 use function is_dir;
@@ -179,7 +182,6 @@ final class FileStreamWrapperTest extends TestCase
         $resource = fopen('php://temp', 'r+');
 
         $prop = new ReflectionProperty(FileStreamWrapper::class, 'resource');
-        $prop->setAccessible(true);
         $prop->setValue($fileStreamWrapper, $resource);
 
         $this->assertEquals($resource, $fileStreamWrapper->stream_cast(0));
@@ -269,6 +271,20 @@ final class FileStreamWrapperTest extends TestCase
 
         $fp = fopen($this->tempFilePath, 'r');
         $this->assertEquals(0, fseek($fp, 0, SEEK_SET));
+        fclose($fp);
+    }
+
+    public function testTell(): void
+    {
+        $this->createTempFile(false);
+        file_put_contents($this->tempFilePath, 'abcdef');
+        $this->registerWrapper();
+
+        // After a seek, PHP asks the wrapper for the position via stream_tell().
+        $fp = fopen($this->tempFilePath, 'r');
+        $this->assertEquals(0, fseek($fp, 4, SEEK_SET));
+        $this->assertEquals(4, ftell($fp));
+        $this->assertEquals('ef', fread($fp, 2));
         fclose($fp);
     }
 
