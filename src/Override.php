@@ -27,9 +27,14 @@ use function is_numeric;
 use function is_string;
 use function realpath;
 use function spl_object_hash;
+use function str_contains;
+use function str_ends_with;
+use function str_starts_with;
 use function stream_wrapper_register;
 use function stream_wrapper_restore;
 use function stream_wrapper_unregister;
+use function strlen;
+use function substr;
 use function trim;
 
 /**
@@ -136,7 +141,12 @@ class Override
                 }
 
                 foreach ($classLoader->getClassMap() as $classMapFqn => $classMapPath) {
-                    if (str_starts_with($classMapFqn, $fqn)) {
+                    // Only classes directly inside the namespace (sub-namespaces are not affected,
+                    // consistent with the PSR-4 handling above).
+                    if (
+                        str_starts_with($classMapFqn, $fqn) &&
+                        !str_contains(substr($classMapFqn, strlen($fqn)), '\\')
+                    ) {
                         $p = realpath($classMapPath);
                         if ($p === false) {
                             // @codeCoverageIgnoreStart
@@ -144,6 +154,7 @@ class Override
                             // @codeCoverageIgnoreEnd
                         }
 
+                        // Class-specific declarations (possibly added before) take precedence.
                         if (isset(self::$fileFunctionCallMap[$p])) {
                             self::$fileFunctionCallMap[$p] = array_merge(
                                 $fqnFunctionCallMap,
@@ -174,7 +185,16 @@ class Override
                 continue;
             }
 
-            self::$fileFunctionCallMap[$path] = $fqnFunctionCallMap;
+            // Merge with namespace declarations (classmap) added before; the class-specific
+            // declaration takes precedence, independent of the declaration order.
+            if (isset(self::$fileFunctionCallMap[$path])) {
+                self::$fileFunctionCallMap[$path] = array_merge(
+                    self::$fileFunctionCallMap[$path],
+                    $fqnFunctionCallMap
+                );
+            } else {
+                self::$fileFunctionCallMap[$path] = $fqnFunctionCallMap;
+            }
             $autoloadCollection->addFile($path);
         }
 
