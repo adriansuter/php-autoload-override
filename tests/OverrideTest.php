@@ -16,6 +16,7 @@ use AdrianSuter\Autoload\Override\CodeConverter;
 use AdrianSuter\Autoload\Override\Override;
 use Composer\Autoload\ClassLoader;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
@@ -99,6 +100,57 @@ class OverrideTest extends TestCase
         Override::apply($classLoader, ['ClassName' => []]);
 
         $this->assertTrue(true);
+    }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function classMapDeclarationOrderProvider(): array
+    {
+        return [
+            'class first' => [true],
+            'namespace first' => [false],
+        ];
+    }
+
+    #[DataProvider('classMapDeclarationOrderProvider')]
+    public function testApplyClassMapIsIndependentOfDeclarationOrder(bool $classFirst)
+    {
+        $baseDir = __DIR__ . '/integration/src/TestClassMapOverride';
+        $calculatorPath = $baseDir . '/Calculator.php';
+        $geometryPath = $baseDir . '/SubNamespace/Geometry.php';
+
+        $classLoaderProphecy = $this->prophesize(ClassLoader::class);
+        $classLoaderProphecy->getApcuPrefix()->willReturn(null);
+        $classLoaderProphecy->getPrefixesPsr4()->willReturn([]);
+        $classLoaderProphecy->getClassMap()->willReturn([
+            'My\\Integration\\TestClassMapOverride\\Calculator' => $calculatorPath,
+            'My\\Integration\\TestClassMapOverride\\SubNamespace\\Geometry' => $geometryPath,
+        ]);
+        $classLoaderProphecy
+            ->findFile('My\\Integration\\TestClassMapOverride\\Calculator')
+            ->willReturn($calculatorPath);
+
+        $classDeclaration = ['My\\Integration\\TestClassMapOverride\\Calculator' => ['cos' => 'ClassNs']];
+        $namespaceDeclaration = ['My\\Integration\\TestClassMapOverride\\' => ['cos' => 'NsNs', 'sin' => 'NsNs']];
+
+        /** @var ClassLoader $classLoader */
+        $classLoader = $classLoaderProphecy->reveal();
+        Override::apply(
+            $classLoader,
+            $classFirst
+                ? $classDeclaration + $namespaceDeclaration
+                : $namespaceDeclaration + $classDeclaration
+        );
+
+        // The class-specific declaration wins, the namespace declaration fills the gaps.
+        $this->assertEquals(
+            ['\\cos' => 'ClassNs\\cos', '\\sin' => 'NsNs\\sin'],
+            Override::getFunctionCallMap($calculatorPath)
+        );
+
+        // Sub-namespaces are not affected by the namespace declaration.
+        $this->assertEquals([], Override::getFunctionCallMap($geometryPath));
     }
 
     public function testGetFunctionCallMapOfNonExistentFile()
